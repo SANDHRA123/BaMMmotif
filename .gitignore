@@ -2,6 +2,9 @@ Debug/
 Release/
 build/
 
+.project
+CMakeLists.txt
+
 #####=== C ===#####
 # Object files
 *.o
