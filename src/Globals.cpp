@@ -516,54 +516,145 @@ Global::Global(int argc, char *argv[]){
  * improve readability in non-EM parts */
 void Global::printHelpOutput(){
 
-	bool developerMode = false; /* use emHelp & emDeveloperHelp to enable EM-specific help */
+	bool developerHelp = false; /* use emHelp & emDeveloperHelp to enable EM-specific help */
 
-	printf("\n==============================================================================================================================\n");
-	printf("== XXmotif version 1.6");
-	printf("\n==============================================================================================================================\n");
-	printf("\nUsage: XXmotif OUTDIR SEQFILE [options] \n\n");
-	printf("\tOUTDIR:  output directory for all results\n");
-	printf("\tSEQFILE: file name with sequences from positive set in FASTA format\n");
-	printf("\n");
-	printf("Options:\n");
-	printf("\t--negSet <FILE>\t\t\t\tsequence set which has to be used as a reference set\n");
-	printf("\t--zoops\t\t\t\t\tuse zero-or-one occurrence per sequence model (DEFAULT)\n");
-	printf("\t--mops\t\t\t\t\tuse multiple occurrence per sequence model\n");
-	printf("\t--oops\t\t\t\t\tuse one occurrence per sequence model\n");
-	printf("\t--revcomp\t\t\t\tsearch in reverse complement of sequences as well (DEFAULT: NO)\n");
-	printf("\t--background-model-order <NUMBER>\torder of background distribution (DEFAULT: 2, 8(--negset) )\n");//, 4(--aa) )\n");
-	if(developerMode)printf("\t--write-pwm-file FOLDER\t\t\twrite PWMs into this folder (DEFAULT OUTDIR)\n");
-	printf("\t--pseudo <NUMBER>\t\t\tpercentage of pseudocounts used (DEFAULT: 10)\n");
+	printf( "BaMM!motif version 1.0\n" );
+	printf( "\n" );
+	printf( "SYNOPSIS\n" );
+	printf( "      BaMMmotif DIR FILE [OPTIONS]\n" );
+	printf( "\n" );
+	printf( "DESCRIPTION\n" );
+	printf( "      Bayesian Markov model motif discovery software.\n" );
+	printf( "\n" );
+	printf( "      DIR\n" );
+	printf( "          Output directory for all results.\n" );
+	printf( "\n" );
+	printf( "      FILE\n" );
+	printf( "          FASTA file with positive sequences.\n" );
+	printf( "\n" );
+	printf("OPTIONS\n");
+	printf( "      --negSequenceSet <FILE>\n" );
+	printf( "          FASTA file with negative/background sequences.\n" );
+	printf( "\n" );
+	printf( "      --reverseComp\n" );
+	printf( "          Search motifs on both positive sequences and their reverse\n" );
+	printf( "          complements. This option is e.g. recommended when using positive\n" );
+	printf( "          sequences derived from ChIP-seq experiments.\n" );
+	printf( "\n" );
+
+	printf( "  Options to initialize a BMM from file\n" );
+	printf( "      --bindingSiteFile <FILE>\n" );
+	printf( "          File with binding sites of equal length (one per line).\n" );
+	printf( "\n" );
+	printf( "      --markovModelFile <FILE>\n" );
+	printf( "          File with BMM probabilities (<FILE>.conds and <FILE>.probs).\n" );
+	printf( "\n" );
+
+	printf( "  Options to initialize BMMs from XXmotif PWMs\n" );
+	printf( "      --PWMRank <INTEGER> [<INTEGER>...]\n" );
+	printf( "          Rank(s) of PWM(s) in XXmotif results. The remaining options to\n" );
+	printf( "          initialize BMMs from PWMs are ignored.\n" );
+	printf( "\n" );
+	printf( "      --minPWMNumber <INTEGER>\n" );
+	printf( "          Minimum number of PWMs. Ignores the options --maxPvalue and\n" );
+	printf( "          --minOccurrence. The default is 1.\n" );
+	printf( "\n" );
+	printf( "      --maxPWMNumber <INTEGER>\n" );
+	printf( "          Maximum number of PWMs.\n" );
+	printf( "\n" );
+	printf( "      --maxPValue <FLOAT>\n" );
+	printf( "          Maximum p-value of PWMs. This filter is not applied to the top\n" );
+	printf( "          minimum number of PWMs (--minPWMNumber). The default is 1.0.\n" );
+	printf( "\n" );
+	printf( "      --minOccurrence <FLOAT>\n" );
+	printf( "          Minimum fraction of sequences that contain a PWM instance. This\n" );
+	printf( "          filter is not applied to the top minimum number of PWMs\n" );
+	printf( "          (--minPWMNumber). The default is 0.05.\n" );
+	printf( "\n" );
+
+	if( developerHelp ){
+		printf( "  Options to initialize BMMs from XXmotif PWMs or binding site files\n" );
+		printf( "      --msq\n" );
+		printf( "          Calculate BMM-specific q value from PWM-specific fraction of\n" );
+		printf( "          sequences that contain a corresponding PWM instance." );
+		printf( "\n" );
+	}
+
+	printf( "  BMM options.\n" );
+	printf( "      -k <INTEGER>\n" );
+	printf( "          Order. The default is 2.\n" );
+	printf( "\n" );
+	printf( "      -a, --alpha <FLOAT> [<FLOAT>...]\n" );
+	printf( "          Order-specific prior strengths. The default is 1 (for k = 0) and" );
+	printf( "          20 x 3^(k-1) (for k > 0). The options -b/--beta and -g/--gamma are\n" );
+	printf( "          ignored.\n" );
+	printf( "      -b, --beta <FLOAT>\n" );
+	printf( "          Recalculate order-specific alphas according to beta x gamma^(k-1)\n" );
+	printf( "          (for k > 0). The default is 20.\n" );
+	printf( "      -g, --gamma <FLOAT>\n" );
+	printf( "          Recalculate order-specific alphas according to beta x gamma^(k-1)\n" );
+	printf( "          (for k > 0). The default is 3.\n" );
+	if( developerHelp ){
+		printf( "      --nonBayesian\n" );
+		printf( "          Use pseudocounts from background frequencies of mononucleotides\n" );
+		printf( "          instead of lower-order probabilities.\n" );
+	}
+
+	printf( "\n\tInterpolated Markov background model options.\n\n" );
+	printf( "\t-K <INTEGER>\n\t\tBackground model order. <INTEGER> >= 0. "
+			"(default: 0).\n\n" );
+	printf( "\t-A, --Alpha <FLOAT>\n\t\tBackground model pseudo-counts "
+			"factor. <FLOAT> >= 0 (default: 10).\n\n" );
+
+
+
+
+
+	printf( "\n\tOptions to initialize models.\n\n" );
+	printf( "\t--addColumns <INTEGER>{1,2}\n\t\tAdd columns to the left "
+			"and/or right of models. <INTEGER> >= 0 (default: 0 0).\n\n" );
+
+	printf( "  XXmotif options\n" );
+	printf( "    --XX-ZOOPS\n" );
+	printf( "        Use the zero-or-one-occurrence-per-sequence model. This is the default.\n" );
+	printf( "    --XX-MOPS\n" );
+	printf( "        Use the multiple-occurrence-per-sequence model.\n" );
+	printf( "    --XX-OOPS\n" );
+	printf( "        Use the one-occurrence-per-sequence model.\n" );
+	printf( "    --XX-K <NONNEGATIVE INTEGER>\n" );
+	printf( "        Order of homogeneous Bayesian Markov model that models background\n"
+            "        sequences. The default order is 2 or 8 (--negSequenceSet).\n" );
+	printf( "    --XX-A, --XX-Alpha <FLOAT>\n" );
+	printf( "        Prior strength. The default is 10.0.\n");
 	printf("\t-g|--gaps <NUMBER>\t\t\tmaximum number of gaps used for start seeds [0-3] (DEFAULT: 0)\n");
 	printf("\t--type <TYPE>\t\t\t\tdefines what kind of start seeds are used (DEFAULT: ALL)\n");
 	printf("\t\t\t\t\t\t - possible types: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM\n");
 	printf("\t--merge-motif-threshold <MODE>\t\tdefines the similarity threshold for merging motifs (DEFAULT: HIGH)\n");
 	printf("\t\t\t\t\t\t - possible modes: LOW, MEDIUM, HIGH\n");
-	if(developerMode)printf("\n");
-	printf("\t--no-pwm-length-optimization\t\tdo not optimize length during iterations (runtime advantages)\n");
-	if(developerMode)printf("\t--min-match-positions <INT>\t\tmin number of non-wildcard positions per motif (DEFAULT: 4 (NA), 2 (AA))\n");
+
+	if(developerHelp)printf("\t--min-match-positions <INT>\t\tmin number of non-wildcard positions per motif (DEFAULT: 4 (NA), 2 (AA))\n");
 	printf("\t--max-match-positions <INT>\t\tmax number of positions per motif (DEFAULT: 17, higher values will lead to very long runtimes)\n");
 	printf("\n");
 	printf("\t--batch\t\t\t\t\tsuppress progress bars (reduce output size for batch jobs)\n");
-	if(developerMode)printf("\t--maxSeqOcc\t\t\tmaximum number of motif occurrences per sequence)\n");
-	if(developerMode)printf("\t--debug\t\t\t\t\tshow matrix for every iteration step\n");
+	if(developerHelp)printf("\t--maxSeqOcc\t\t\tmaximum number of motif occurrences per sequence)\n");
+	if(developerHelp)printf("\t--debug\t\t\t\t\tshow matrix for every iteration step\n");
 	printf("\t--maxPosSetSize <NUMBER>\t\tmaximum number of sequences from the positive set used [DEFAULT: all]\n");
 	printf("\t-h|--help\t\t\t\tprint this help page\n");
 	printf("\t--trackedMotif <SEED>\t\t\tinspect extensions and refinement of a given seed (DEFAULT: not used)\n");
-	if(developerMode)printf("\t--neff-states <NUMBER>\t\t\teffective number of different states in one IUPAC extension (DEFAULt: 6)\n");
-	if(developerMode)printf("\t--neff-pwm <NUMBER>\t\t\teffective number of different states in one PWM column (DEFAULt: 10 (NA), 63(AA))\n");
-	if(developerMode)printf("\t--gapOpening <NUMBER>\t\t\tbit penalty for every opened gap\n");
-	if(developerMode)printf("\t--gapExtension <NUMBER>\t\t\tbit penalty for every extended gap position\n");
+	if(developerHelp)printf("\t--neff-states <NUMBER>\t\t\teffective number of different states in one IUPAC extension (DEFAULt: 6)\n");
+	if(developerHelp)printf("\t--neff-pwm <NUMBER>\t\t\teffective number of different states in one PWM column (DEFAULt: 10 (NA), 63(AA))\n");
+	if(developerHelp)printf("\t--gapOpening <NUMBER>\t\t\tbit penalty for every opened gap\n");
+	if(developerHelp)printf("\t--gapExtension <NUMBER>\t\t\tbit penalty for every extended gap position\n");
 	printf("\n");
 	printf("Using conservation information\n");
 	printf("\t--format FASTA|MFASTA\t\t\tdefines what kind of format the input sequences have (DEFAULT: FASTA)\n");
 	printf("\t--maxMultipleSequences <NUMBER>\t\tmaximum number of sequences used in an alignment [DEFAULT: all]\n");
-	if(developerMode)printf("\t--cons-length <NUMBER>\t\tused nucleotides for conservation pVal calculation [DEFAULT: 8]\n");
+	if(developerHelp)printf("\t--cons-length <NUMBER>\t\tused nucleotides for conservation pVal calculation [DEFAULT: 8]\n");
 	printf("\n");
 	printf("Using localization information\n");
 	printf("\t--localization\t\t\t\tuse localization information to calculate combined P-values \n\
 			\t\t\t(sequences should have all the same length)\n");
-	if( developerMode ) printf( "\t--localization-ranking\t\t\trank motifs by localization P-values\n" );
+	if( developerHelp ) printf( "\t--localization-ranking\t\t\trank motifs by localization P-values\n" );
 	printf("\t--downstream <NUMBER>\t\t\tnumber of residues in positive set downstream of anchor point (DEFAULT: 0)\n");
 	printf("\n");
 	printf("Start with self defined motif:\n");
@@ -571,14 +662,14 @@ void Global::printHelpOutput(){
 	printf("\t-p|--profileFile <FILE>\t\t\tprofile file\n");
 	printf("\t--startRegion <NUMBER>\t\t\texpected start position for motif occurrences relative to anchor point (--localization)\n");
 	printf("\t--endRegion <NUMBER>\t\t\texpected end position for motif occurrences relative to anchor point (--localization)\n");
-	if( developerMode ) printf( "\n" );
-	if( developerMode ) printf( "HO null model:\n" );
-	if( developerMode ) printf( "\t--counts-offset <FLOAT>\t\t\tpseudocounts factor of HO null model\n" );
-	if( developerMode ) printf( "\t--pseudocounts-factor <FLOAT>\t\tcounts offset of HO null model\n" );
+	if( developerHelp ) printf( "\n" );
+	if( developerHelp ) printf( "HO null model:\n" );
+	if( developerHelp ) printf( "\t--counts-offset <FLOAT>\t\t\tpseudocounts factor of HO null model\n" );
+	if( developerHelp ) printf( "\t--pseudocounts-factor <FLOAT>\t\tcounts offset of HO null model\n" );
 	printf( "\n" );
-	if(developerMode)printf("\n");
-	if(developerMode)printf("\t--empirical-recalibration\t\trecalibrate pValues with negative set\n");
-	if(developerMode)printf("\t--min-coverage <FLOAT>\t\t\tminimum fraction of sequences a motif has to be found in (DEFAULT: 0.0)\n");
+	if(developerHelp)printf("\n");
+	if(developerHelp)printf("\t--empirical-recalibration\t\trecalibrate pValues with negative set\n");
+	if(developerHelp)printf("\t--min-coverage <FLOAT>\t\t\tminimum fraction of sequences a motif has to be found in (DEFAULT: 0.0)\n");
 	/*printf("\n");
 	printf("Proteins only:\n");
 	printf("\t--aa\t\t\t\t\tuse amino acids\n");
@@ -595,91 +686,7 @@ void Global::printHelpOutput(){
 	if(developerMode)printf("\t--trackedOnly\t\t\t\tdrop all but the tracked motifs (DEFAULT: no)\n");
 	*/
 
-	printf("\n==============================================================================================================================\n");
 
-	/*
-	 * Expectation Maximization (EM) help
-	 */
-
-	bool emHelp = true;
-	bool emDeveloperHelp = true;
-
-	if( emHelp ){
-		printf( "\nExpectation Maximization (EM) options.\n\n" );
-		printf( "\t--em\tEM mode.\n\n"
-				);
-
-		printf( "\n\tOptions to initialize models from file.\n\n" );
-		printf( "\t--bindingSiteFile <FILE>\n\t\tBinding sites file name to "
-				"initialize a single Markov model. Sequence lengths must not "
-				"differ and be provided line-by-line.\n\n" );
-		if( emDeveloperHelp ){
-			printf( "\t--bindingSiteLength <INTEGER>\n\t\tSpecify the length of"
-					" binding sites provided by --bindingSiteFile (not "
-					"mandatory).\n\n" );
-		}
-		printf( "\t--markovModelFile <FILE>\n\t\tMarkov model file name "
-				"(without ending) to initialize a single Markov model. Files "
-				"<FILE>.conds and <FILE>.probs need to be available.\n"
-				"\n" );
-
-		printf( "\n\tOptions to initialize models from XXmotif results. Options"
-				" --bindingSiteFile and --markovModelFile must not be provided "
-				"simultaneously.\n\n" );
-		printf( "\t--nrModels <INTEGER> [<INTEGER>...]\n\t\tNumber of one or "
-				"more XXmotif models in the ranking used to initialize Markov "
-				"models. The remaining parameters available to choose models "
-				"from XXmotif results are ignored.\n\n" );
-		printf( "\t--minModels <INTEGER>\n\t\tMin. number of XXmotif models "
-				"used to initialize Markov models. Independent on options"
-				" --maxPvalue and --minOccurrence. <INTEGER> > 0 (default: 1)."
-				"\n\n" );
-		printf( "\t--maxModels <INTEGER>\n\t\tMax. number of XXmotif models "
-				"used to initialize Markov models. <INTEGER> > 0 (default: max."
-				" integer).\n\n" );
-		printf( "\t--maxPvalue <FLOAT>\n\t\tMax. p-value of XXmotif models used"
-				" to initialize Markov models. Not applied to min. number"
-				" of models. (default: 1).\n\n" );
-		printf( "\t--minOccurrence <FLOAT>\n\t\tMin. percentage of sequences "
-				"containing a binding site instance. Not applied to min. number"
-				" of models. (default: 0).\n\n" );
-		printf( "\t--msq\tUse model-specific specificity factors by considering"
-				" the percentage of positive sequences containing a "
-				"corresponding binding site instance.\n\n" );
-
-		if( emDeveloperHelp ){
-			printf( "\n\tOptions to initialize models from XXmotif results or "
-					"a binding site file. Option --markovModelFile must not be "
-					"provided simultaneously.\n\n" );
-			printf( "\t--msq\tUse model-specific specificity factors by "
-					"considering the percentage of positive sequences "
-					"containing a corresponding binding site instance.\n\n" );
-		}
-
-		printf( "\n\tOptions to initialize models.\n\n" );
-		printf( "\t--addColumns <INTEGER>{1,2}\n\t\tAdd columns to the left "
-				"and/or right of models. <INTEGER> >= 0 (default: 0 0).\n\n" );
-
-		printf( "\n\tMarkov model options.\n\n" );
-		printf( "\t-k <INTEGER>\n\t\tMarkov model order. <INTEGER> >= 0 "
-				"(default: 0).\n\n" );
-		printf( "\t-a, --alpha <FLOAT> [<FLOAT>...]\n\t\tMarkov model "
-				"pseudo-counts factor(s). Markov model order k fixes vector "
-				"size to k+1. <FLOAT> >= 0 (default: 10).\n\n" );
-		if( emDeveloperHelp ){
-			printf( "\t--eta <FLOAT> [<FLOAT>...]\n\t\tMarkov model "
-					"pseudo-counts factor(s) defined by --alpha and -q. Markov "
-					"model order k fixes vector size to k+1. Specify either "
-					"--eta or --alpha. <FLOAT> >= 0 (default: 10).\n\n" );
-		}
-		printf( "\t--interpolate\n\t\tInterpolate between higher- and "
-				"lower-order probabilities.\n\n" );
-
-		printf( "\n\tInterpolated Markov background model options.\n\n" );
-		printf( "\t-K <INTEGER>\n\t\tBackground model order. <INTEGER> >= 0. "
-				"(default: 0).\n\n" );
-		printf( "\t-A, --Alpha <FLOAT>\n\t\tBackground model pseudo-counts "
-				"factor. <FLOAT> >= 0 (default: 10).\n\n" );
 
 		printf( "\n\tEM options.\n\n" );
 		printf( "\t--noExpectationMaximizationPhase\n\t\tInitialize Markov "
@@ -689,7 +696,7 @@ void Global::printHelpOutput(){
 				"<FLOAT> < 1 (default: 0.1).\n\n" );
 		printf( "\t--epsilon <FLOAT>\n\t\tEM convergence parameter. <FLOAT> > 0"
 				" (default: 0.001).\n\n" );
-		if( emDeveloperHelp ){
+		if( developerHelp ){
 			printf( "\t--maxEMIterations <INTEGER>\n\t\tMax. number of EM "
 					"iterations (default: max. integer).\n\n" );
 		}
@@ -698,7 +705,7 @@ void Global::printHelpOutput(){
 		printf( "\t--sequenceIntsFile <FILE>\n\t\tIntensity or significance "
 				"values for positive sequences. The higher the values the "
 				"higher the weights.\n\n" );
-		if( emDeveloperHelp ){
+		if( developerHelp ){
 			printf( "\t--initInts\n\t\tParameter to initialize models from "
 					"XXmotif results by weighting instances with corresponding "
 					"sequence weigths. Option --sequenceIntsFile must be "
@@ -723,7 +730,7 @@ void Global::printHelpOutput(){
 				"intensity rank get assigned to weight zero. Option "
 				"--rankWeighting must be provided simultaneously (default: max."
 				" rank).\n\n" );
-		if( emDeveloperHelp ){
+		if( developerHelp ){
 			printf( "\n\tBinding site weighting options.\n\n" );
 			printf( "\t--bindingSiteIntsFile <FILE>\n\t\tIntensity or "
 					"significance values for binding site sequences. The higher"
@@ -757,7 +764,7 @@ void Global::printHelpOutput(){
 		printf( "\t--testSet <FILE>\n\t\tEvaluate model(s) on sequences in "
 				"FASTA format. Specify one or more files. Sequence lengths may "
 				"differ.\n\n" );
-		if( emDeveloperHelp ){
+		if( developerHelp ){
 			printf( "\t--evaluatePWMs\n\t\tEvaluate PWM model(s) used to "
 					"initialize Markov model(s) on test sequences."
 					"\n\n" );
@@ -770,7 +777,7 @@ void Global::printHelpOutput(){
 				"initialization to file.\n\n" );
 		printf( "\t--saveModels\n\t\tSave Markov models after EM phase to file."
 				"\n\n" );
-		if( emDeveloperHelp ){
+		if( developerHelp ){
 			printf( "\t--saveExpectationMaximizationLikelihoods\n\t\tSave "
 					"EM iteration's sequence likelihoods and positional odds to"
 					" file.\n\n" );
@@ -778,7 +785,6 @@ void Global::printHelpOutput(){
 					"iteration's Markov models to file.\n\n" );
 		}
 		printf( "\t--verbose\n\t\tVerbose printouts.\n\n" );
-	}
 
 	exit(-1);
 }
