@@ -14,10 +14,7 @@ int main(int argc, char *argv[])
 {
     long time1 = time( NULL );
 
-	fprintf( stderr, "\n" );
-	fprintf( stderr, "================\n" );
-	fprintf( stderr, "=   XX MOTIF   =\n" );
-	fprintf( stderr, "================\n" );
+	fprintf( stderr, "BaMM!motif\n\n" );
 
     // initialize global variables
 	Global G( argc, argv );
