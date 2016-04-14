@@ -516,103 +516,100 @@ Global::Global(int argc, char *argv[]){
  * improve readability in non-EM parts */
 void Global::printHelpOutput(){
 
-	bool developerHelp = false; /* use emHelp & emDeveloperHelp to enable EM-specific help */
+	bool developerHelp = true; /* use emHelp & emDeveloperHelp to enable EM-specific help */
 
 	printf( "BaMM!motif version 1.0\n" );
 	printf( "\n" );
 	printf( "SYNOPSIS\n" );
-	printf( "      BaMMmotif DIR FILE [OPTIONS]\n" );
-	printf( "\n" );
+	printf( "      BaMMmotif DIR FILE [OPTIONS]\n\n" );
 	printf( "DESCRIPTION\n" );
-	printf( "      Bayesian Markov model motif discovery software.\n" );
-	printf( "\n" );
-	printf( "      DIR\n" );
-	printf( "          Output directory for all results.\n" );
-	printf( "\n" );
-	printf( "      FILE\n" );
-	printf( "          FASTA file with positive sequences.\n" );
-	printf( "\n" );
-	printf("OPTIONS\n");
-	printf( "      --negSequenceSet <FILE>\n" );
-	printf( "          FASTA file with negative/background sequences.\n" );
-	printf( "\n" );
-	printf( "      --reverseComp\n" );
-	printf( "          Search motifs on both positive sequences and their reverse\n" );
-	printf( "          complements. This option is e.g. recommended when using positive\n" );
-	printf( "          sequences derived from ChIP-seq experiments.\n" );
-	printf( "\n" );
+	printf( "      Bayesian Markov model motif discovery software.\n\n" );
+	printf( "      DIR\n"
+			"          Output directory for all results.\n\n" );
+	printf( "      FILE\n"
+			"          FASTA file with positive sequences of equal length.\n\n" );
 
-	printf( "  Options to initialize a BMM from file\n" );
-	printf( "      --bindingSiteFile <FILE>\n" );
-	printf( "          File with binding sites of equal length (one per line).\n" );
-	printf( "\n" );
-	printf( "      --markovModelFile <FILE>\n" );
-	printf( "          File with BMM probabilities (<FILE>.conds and <FILE>.probs).\n" );
-	printf( "\n" );
+	printf("OPTIONS\n");
+	printf( "      --negSequenceSet <FILE>\n"
+			"          FASTA file with negative/background sequences.\n\n" );
+	printf( "      --reverseComp\n"
+			"          Search motifs on both positive sequences and their reverse\n"
+			"          complements. This option is e.g. recommended when using positive\n"
+			"          sequences derived from ChIP-seq experiments.\n\n" );
+
+	printf( "  Options to initialize BMMs from file\n" );
+	printf( "      --bindingSiteFile <FILE>\n"
+			"          File with binding sites of equal length (one per line).\n\n" );
+	printf( "      --markovModelFile <FILE>\n"
+			"          File with BMM probabilities (<FILE>.conds and <FILE>.probs).\n\n" );
 
 	printf( "  Options to initialize BMMs from XXmotif PWMs\n" );
-	printf( "      --PWMRank <INTEGER> [<INTEGER>...]\n" );
-	printf( "          Rank(s) of PWM(s) in XXmotif results. The remaining options to\n" );
-	printf( "          initialize BMMs from PWMs are ignored.\n" );
-	printf( "\n" );
-	printf( "      --minPWMNumber <INTEGER>\n" );
-	printf( "          Minimum number of PWMs. Ignores the options --maxPvalue and\n" );
-	printf( "          --minOccurrence. The default is 1.\n" );
-	printf( "\n" );
-	printf( "      --maxPWMNumber <INTEGER>\n" );
-	printf( "          Maximum number of PWMs.\n" );
-	printf( "\n" );
-	printf( "      --maxPValue <FLOAT>\n" );
-	printf( "          Maximum p-value of PWMs. This filter is not applied to the top\n" );
-	printf( "          minimum number of PWMs (--minPWMNumber). The default is 1.0.\n" );
-	printf( "\n" );
-	printf( "      --minOccurrence <FLOAT>\n" );
-	printf( "          Minimum fraction of sequences that contain a PWM instance. This\n" );
-	printf( "          filter is not applied to the top minimum number of PWMs\n" );
-	printf( "          (--minPWMNumber). The default is 0.05.\n" );
-	printf( "\n" );
+	printf( "      --PWMRank <INTEGER> [<INTEGER>...]\n"
+			"          Rank(s) of PWM(s) in XXmotif results. Ignores the remaining options\n"
+			"          to initialize BMMs from PWMs.\n\n" );
+	printf( "      --minPWMNumber <INTEGER>\n"
+			"          Minimum number of PWMs. Ignores the options --maxPvalue and\n"
+			"          --minOccurrence. The default is 1.\n\n" );
+	printf( "      --maxPWMNumber <INTEGER>\n"
+			"          Maximum number of PWMs.\n\n" );
+	printf( "      --maxPValue <FLOAT>\n"
+			"          Maximum p-value of PWMs. This filter is not applied to the top\n"
+			"          minimum number of PWMs (--minPWMNumber). The default is 1.0.\n\n" );
+	printf( "      --minOccurrence <FLOAT>\n"
+			"          Minimum fraction of sequences that contain a PWM instance. This\n"
+			"          filter is not applied to the top minimum number of PWMs\n"
+			"          (--minPWMNumber). The default is 0.05.\n\n" );
 
 	if( developerHelp ){
 		printf( "  Options to initialize BMMs from XXmotif PWMs or binding site files\n" );
-		printf( "      --msq\n" );
-		printf( "          Calculate BMM-specific q value from PWM-specific fraction of\n" );
-		printf( "          sequences that contain a corresponding PWM instance." );
-		printf( "\n" );
+		printf( "      --msq (*)\n"
+				"          Calculate BMM-specific q value from PWM-specific fraction of\n"
+				"          sequences that contain a corresponding PWM instance.\n\n" );
 	}
 
-	printf( "  BMM options.\n" );
-	printf( "      -k <INTEGER>\n" );
-	printf( "          Order. The default is 2.\n" );
-	printf( "\n" );
-	printf( "      -a, --alpha <FLOAT> [<FLOAT>...]\n" );
-	printf( "          Order-specific prior strengths. The default is 1 (for k = 0) and" );
-	printf( "          20 x 3^(k-1) (for k > 0). The options -b/--beta and -g/--gamma are\n" );
-	printf( "          ignored.\n" );
-	printf( "      -b, --beta <FLOAT>\n" );
-	printf( "          Recalculate order-specific alphas according to beta x gamma^(k-1)\n" );
-	printf( "          (for k > 0). The default is 20.\n" );
-	printf( "      -g, --gamma <FLOAT>\n" );
-	printf( "          Recalculate order-specific alphas according to beta x gamma^(k-1)\n" );
-	printf( "          (for k > 0). The default is 3.\n" );
+	printf( "  Options for motif (inhomogeneous) BMMs\n" );
+	printf( "      -k <INTEGER>\n"
+			"          Order. The default is 2.\n\n" );
+	printf( "      -a, --alpha <FLOAT> [<FLOAT>...]\n"
+			"          Order-specific prior strength. The default is 1 (for k = 0) and 20 x\n"
+			"          3^(k-1) (for k > 0). Ignores the options -b/--beta and -g/--gamma.\n\n" );
+	printf( "      -b, --beta <FLOAT>\n"
+			"          Recalculate order-specific alphas according to beta x gamma^(k-1)\n"
+			"          (for k > 0). The default is 20.\n\n" );
+	printf( "      -g, --gamma <FLOAT>\n"
+			"          Recalculate order-specific alphas according to beta x gamma^(k-1)\n"
+			"          (for k > 0). The default is 3.\n\n" );
+	printf( "      --extend <INTEGER>{1,2}\n"
+			"          Extend BMMs by adding uniformly initialized positions to the left\n"
+			"          and/or right of initial BMMs. Invoking e.g. with --extend 0 2 adds\n"
+			"          two positions to the right of initial BMMs. By default, BMMs are not\n"
+			"          extended.\n\n" );
 	if( developerHelp ){
-		printf( "      --nonBayesian\n" );
-		printf( "          Use pseudocounts from background frequencies of mononucleotides\n" );
-		printf( "          instead of lower-order probabilities.\n" );
+		printf( "      --nonBayesian (*)\n"
+				"          Calculate prior probabilities from background frequencies of\n"
+				"          mononucleotides instead of lower-order probabilities.\n\n" );
 	}
 
-	printf( "\n\tInterpolated Markov background model options.\n\n" );
-	printf( "\t-K <INTEGER>\n\t\tBackground model order. <INTEGER> >= 0. "
-			"(default: 0).\n\n" );
-	printf( "\t-A, --Alpha <FLOAT>\n\t\tBackground model pseudo-counts "
-			"factor. <FLOAT> >= 0 (default: 10).\n\n" );
+	printf( "  Options for background (homogeneous) BMMs\n"
+			"      -K <INTEGER>\n"
+			"          Order. The default is 2.\n\n" );
+	printf( "      -A, --Alpha <FLOAT>\n"
+			"          Prior strength. The default is 10.\n\n" );
 
-
-
-
-
-	printf( "\n\tOptions to initialize models.\n\n" );
-	printf( "\t--addColumns <INTEGER>{1,2}\n\t\tAdd columns to the left "
-			"and/or right of models. <INTEGER> >= 0 (default: 0 0).\n\n" );
+	printf( "  EM options.\n" );
+	printf( "      -q <FLOAT>\n"
+			"          Prior probability for a sequence to contain a motif. The default is\n"
+			"          0.9.\n\n" );
+	printf( "      -e, --epsilon <FLOAT>\n"
+			"          The EM algorithm is deemed to be converged when the sum over the\n"
+			"          absolute differences in BMM parameters from successive EM rounds is\n"
+			"          smaller than epsilon. The default is 0.001\n\n" );
+	if( developerHelp ){
+		printf( "      --maxEMIterations <INTEGER> (*)\n"
+				"          Maximum number of EM iterations.\n\n" );
+		printf( "      --noEM (*)\n"
+				"          Initialize BMMs only.\n\n" );
+	}
 
 	printf( "  XXmotif options\n" );
 	printf( "    --XX-ZOOPS\n" );
@@ -662,129 +659,93 @@ void Global::printHelpOutput(){
 	printf("\t-p|--profileFile <FILE>\t\t\tprofile file\n");
 	printf("\t--startRegion <NUMBER>\t\t\texpected start position for motif occurrences relative to anchor point (--localization)\n");
 	printf("\t--endRegion <NUMBER>\t\t\texpected end position for motif occurrences relative to anchor point (--localization)\n");
-	if( developerHelp ) printf( "\n" );
-	if( developerHelp ) printf( "HO null model:\n" );
-	if( developerHelp ) printf( "\t--counts-offset <FLOAT>\t\t\tpseudocounts factor of HO null model\n" );
-	if( developerHelp ) printf( "\t--pseudocounts-factor <FLOAT>\t\tcounts offset of HO null model\n" );
-	printf( "\n" );
-	if(developerHelp)printf("\n");
-	if(developerHelp)printf("\t--empirical-recalibration\t\trecalibrate pValues with negative set\n");
-	if(developerHelp)printf("\t--min-coverage <FLOAT>\t\t\tminimum fraction of sequences a motif has to be found in (DEFAULT: 0.0)\n");
-	/*printf("\n");
-	printf("Proteins only:\n");
-	printf("\t--aa\t\t\t\t\tuse amino acids\n");
-	printf("\t--aaMtfFile <STRING>\t\t\toutput file for AA motifs in MTF format (DEFAULT: directory/seqfile.mtf)\n");
-	if(developerMode)printf("\t--extensionMinCut <INT>\t\t\tmin number of initial seeds extended (DEFAULT: 1000)\n");
-	if(developerMode)printf("\t--extensionMaxCut <INT>\t\t\tmax number of initial seeds extended (DEFAULT: infty)\n");
-	if(developerMode)printf("\t--extensionECut <FLOAT>\t\t\tE-value threshold for seed extension (DEFAULT: 1.0)\n");
-	if(developerMode)printf("\t--aaStateSigThresh <FLOAT>\t\todds-threshold for state significance (DEFAULT: 2.0)\n");
-	if(developerMode)printf("\t--aaSeqFreqThresh <FLOAT>\t\tconservation threshold for extension positions (DEFAULT: 0.75)\n");
-	printf("\t--supplementary-information [NO|DISOCONS|NNET]\t\t\t\tuse supplementary information (DEFAULT: NO)\n");
-	if(developerMode)printf("\t--disoconsWeight\t\t\tweight of disorder/conservation P-value (DEFAULT: 0.5)\n");
-	if(developerMode)printf("\t--termFreqScale <NUMBER>\t\tscale frequencies of terminal character by NUMBER (DEFAULT: 3.0)\n");
-	if(developerMode)printf("\t--trackedMotif <STRING>\t\t\toutput info on tracked motif for debugging (DEFAULT: NONE)\n");
-	if(developerMode)printf("\t--trackedOnly\t\t\t\tdrop all but the tracked motifs (DEFAULT: no)\n");
-	*/
 
+	if( developerHelp ){
+		printf( "  Options for weighting positive sequences(*)\n" );
+		printf( "      --posSequenceIntensities <FILE>\n"
+				"          File with intensities for positive sequences (one per line) used to\n"
+				"          weight sequences in the EM algorithm. The order of intensities must\n"
+				"          conform to the order of positive sequences. Higher intensities\n"
+				"          produce higher sequence weights.\n\n" );
+		printf( "      --useIntensitiesToInitBMMs\n"
+				"          Use intensities to initialize BMMs from weighted instances of XXmotif\n"
+				"          PWMs.\n\n" );
+		printf( "      --useRanks\n"
+				"          Use intensity ranks instead of intensities to calculate weights.\n\n" );
+		printf( "      --quantileToBg <FLOAT>\n"
+				"          The quantile of intensities (or ranks) that defines the background\n"
+				"          intensity (rank) used to translate intensities (ranks) into weights.\n"
+				"          The weight of sequences with intensities (ranks) below (above) the\n"
+				"          background intensity (rank) is set to zero. The default is 0.0.\n\n" );
+		printf( "      --intensityToBg <FLOAT>\n"
+				"          The intensity that defines the background intensity used to translate\n"
+				"          intensities into weights. The weight of sequences with intensities\n"
+				"          below the background intensity is set to zero. The default is the\n"
+				"          minimum intensity of positive sequences.\n\n" );
+		printf( "      --rankToBg <INTEGER>\n"
+				"          The rank that defines the background rank used to translate ranks\n"
+				"          into weights. The weight of sequences with ranks above the background\n"
+				"          rank is set to zero. The default is the maximum rank (i.e. the\n"
+				"          number) of positive sequences.\n\n" );
 
+		printf( "  Options for weighting binding sites (*)\n" );
+		printf( "      --bindingSiteIntensities <FILE>\n"
+				"          File with intensities for binding site sequences (one per line) used\n"
+				"          to initialize BMMs from weighted binding sites. The order of\n"
+				"          intensities must conform to the order of sequences in the binding\n"
+				"          site file. Higher intensities produce higher weights.\n\n" );
+		printf( "      --useBindingSiteRanks\n"
+				"          Use intensity ranks instead of intensities to calculate weights.\n\n" );
+		printf( "      --quantileToBindingSiteBg <FLOAT>\n"
+				"          The quantile of intensities (or ranks) that defines the background\n"
+				"          intensity (rank) used to translate intensities (ranks) into weights.\n"
+				"          The weight of binding sites with intensities (ranks) below (above)"
+				"          the background intensity (rank) is set to zero. The default is 0.0.\n\n" );
+		printf( "      --intensityToBindingSiteBg <FLOAT>\n"
+				"          The intensity that defines the background intensity used to translate\n"
+				"          intensities into weights. The weight of binding sites with"
+				"          intensities below the background intensity is set to zero. The\n"
+				"          default is the minimum intensity of binding sites.\n\n" );
+		printf( "      --rankToBindingSiteBg <INTEGER>\n"
+				"          The rank that defines the background rank used to translate ranks\n"
+				"          into weights. The weight of binding sites with ranks above the\n"
+				"          background rank is set to zero. The default is the maximum rank (i.e.\n"
+				"          the number) of binding sites.\n\n" );
+	}
 
-		printf( "\n\tEM options.\n\n" );
-		printf( "\t--noExpectationMaximizationPhase\n\t\tInitialize Markov "
-				"model but skip EM phase.\n\n" );
-		printf( "\t-q <FLOAT>\n\t\tSpecificity factor approximates the "
-				"percentage of sequences contributing to the Markov model. 0 < "
-				"<FLOAT> < 1 (default: 0.1).\n\n" );
-		printf( "\t--epsilon <FLOAT>\n\t\tEM convergence parameter. <FLOAT> > 0"
-				" (default: 0.001).\n\n" );
-		if( developerHelp ){
-			printf( "\t--maxEMIterations <INTEGER>\n\t\tMax. number of EM "
-					"iterations (default: max. integer).\n\n" );
-		}
+	printf( "  Options to score sequences\n" );
+	printf( "      --scorePosSequenceSet\n"
+			"          Score positive (training) sequences with optimized BMMs.\n\n" );
+	printf( "      --scoreNegSequenceSet\n"
+			"          Score background (training) sequences with optimized BMMs.\n\n" );
+	printf( "      --scoreTestSequenceSet <FILE> [<FILE>...]\n"
+			"          Score test sequences with optimized BMMs. Test sequences can be\n"
+			"          provided in a single or multiple FASTA files.\n\n" );
+	if( developerHelp ){
+		printf( "      --evaluatePWMs (*)\n"
+				"          Score sequences with XXmotif PWMs\n\n." );
+		printf( "      --calculateLogScores (*)\n"
+				"          Calculate log instead of log-odds scores.\n\n" );
+	}
 
-		printf( "\n\tWeighting options.\n\n" );
-		printf( "\t--sequenceIntsFile <FILE>\n\t\tIntensity or significance "
-				"values for positive sequences. The higher the values the "
-				"higher the weights.\n\n" );
-		if( developerHelp ){
-			printf( "\t--initInts\n\t\tParameter to initialize models from "
-					"XXmotif results by weighting instances with corresponding "
-					"sequence weigths. Option --sequenceIntsFile must be "
-					"provided simultaneously. Options --bindingSiteFile and "
-					"--markovModelFile must not be provided simultaneously.\n\n"
-					);
-		}
-		printf( "\t--rankWeighting\n\t\tRank-based weighting (default: "
-				"intensity-based weighting).\n\n" );
-		printf( "\t--backgroundQuantile <FLOAT>\n\t\tQuantile to estimate the "
-				"background intensity value (or rank). Sequences having their "
-				"intensity value (rank) below (above) the background intensity "
-				"value (rank) get assigned to weight zero. 0 <= <FLOAT> <= 1 "
-				"(default: 0).\n\n");
-		printf( "\t--backgroundIntensity <FLOAT>\n\t\tBackground intensity "
-				"value. Sequences having their intensity value below the "
-				"background intensity value get assigned to weight zero. Option"
-				" --rankWeighting must not be provided simultaneously (default:"
-				" min. intensity value).\n\n" );
-		printf( "\t--backgroundRank <INTEGER>\n\t\tBackground intensity rank. "
-				"Sequences having their intensity rank above the background "
-				"intensity rank get assigned to weight zero. Option "
-				"--rankWeighting must be provided simultaneously (default: max."
-				" rank).\n\n" );
-		if( developerHelp ){
-			printf( "\n\tBinding site weighting options.\n\n" );
-			printf( "\t--bindingSiteIntsFile <FILE>\n\t\tIntensity or "
-					"significance values for binding site sequences. The higher"
-					" the values the higher the weights. Option "
-					"--bindingSiteFile must be provided simultaneously.\n\n" );
-			printf( "\t--bindingSiteRankWeighting\n\t\tBinding site rank-based "
-					"weighting (default: intensity-based weighting).\n\n" );
-			printf( "\t--bindingSiteBackgroundQuantile <FLOAT>\n\t\tQuantile to"
-					" estimate the background intensity value (or rank). "
-					"Binding sites having their intensity value (rank) below "
-					"(below) the background intensity value (rank) get assigned"
-					" to weight zero. 0 <= <FLOAT> <= 1 (default: 0).\n\n");
-			printf( "\t--bindingSiteBackgroundIntensity <FLOAT>\n\t\tBackground"
-					" intensity value. Binding sites having their intensity "
-					"value below the background intensity value get assigned to"
-					" weight zero. Option --bindingSiteRankWeighting must not "
-					"be provided simultaneously (default: min. intensity "
-					"value).\n\n" );
-			printf( "\t--bindingSiteBackgroundRank <INTEGER>\n\t\tBackground "
-					"intensity rank. Binding sites having their intensity rank "
-					"above the background intensity rank get assigned to weight "
-					"zero. Option --bindingSiteRankWeighting must be provided "
-					"simultaneously (default: max. rank).\n\n" );
-		}
+	printf( "  Output options\n" );
+	printf( "      --saveInitBMMss\n"
+			"          Write initialized BMM(s) to disk.\n\n" );
+	printf( "      --saveBMMs\n"
+			"          Write optimized BMM(s) to disk.\n\n" );
+	printf( "      --verbose\n"
+			"          Verbose console printouts.\n\n" );
+	if( developerHelp ){
+		printf( "      --saveEMLikelihoods (*)\n"
+				"          Write sequence likelihoods and positional odds scores to disk after"
+				"          each EM iteration.\n\n" );
+		printf( "      --saveEMBMMs (*)\n"
+				"          Write BBM(s) to disk after each EM iteration.\n\n" );
+	}
 
-		printf( "\n\tScoring options.\n\n" );
-		printf( "\t--testPosSet\n\t\tEvaluate model(s) on training sequences.\n"
-				"\n" );
-		printf( "\t--testNegSet\n\t\tEvaluate model(s) on background sequences."
-				"\n\n" );
-		printf( "\t--testSet <FILE>\n\t\tEvaluate model(s) on sequences in "
-				"FASTA format. Specify one or more files. Sequence lengths may "
-				"differ.\n\n" );
-		if( developerHelp ){
-			printf( "\t--evaluatePWMs\n\t\tEvaluate PWM model(s) used to "
-					"initialize Markov model(s) on test sequences."
-					"\n\n" );
-		}
-		printf( "\t--logProbs\n\t\tCalculate log probabilities instead of log "
-				"likelihood ratios.\n\n" );
-
-		printf( "\n\tOutput options.\n\n" );
-		printf( "\t--saveInitModels\n\t\tSave Markov models after "
-				"initialization to file.\n\n" );
-		printf( "\t--saveModels\n\t\tSave Markov models after EM phase to file."
-				"\n\n" );
-		if( developerHelp ){
-			printf( "\t--saveExpectationMaximizationLikelihoods\n\t\tSave "
-					"EM iteration's sequence likelihoods and positional odds to"
-					" file.\n\n" );
-			printf( "\t--saveExpectationMaximizationModels\n\t\tSave EM "
-					"iteration's Markov models to file.\n\n" );
-		}
-		printf( "\t--verbose\n\t\tVerbose printouts.\n\n" );
+	if( developerHelp ){
+		printf( "      (*) Developer options\n" );
+	}
 
 	exit(-1);
 }
