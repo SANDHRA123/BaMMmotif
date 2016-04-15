@@ -567,16 +567,16 @@ void Global::printHelpOutput(){
 				"          sequences that contain a corresponding PWM instance.\n\n" );
 	}
 
-	printf( "  Options for motif (inhomogeneous) BMMs\n" );
+	printf( "  Options for (inhomogeneous) motif BMMs\n" );
 	printf( "      -k <INTEGER>\n"
 			"          Order. The default is 2.\n\n" );
-	printf( "      -a, --alpha <FLOAT> [<FLOAT>...]\n"
+	printf( "      -a|--alpha <FLOAT> [<FLOAT>...]\n"
 			"          Order-specific prior strength. The default is 1 (for k = 0) and 20 x\n"
 			"          3^(k-1) (for k > 0). Ignores the options -b/--beta and -g/--gamma.\n\n" );
-	printf( "      -b, --beta <FLOAT>\n"
+	printf( "      -b|--beta <FLOAT>\n"
 			"          Recalculate order-specific alphas according to beta x gamma^(k-1)\n"
 			"          (for k > 0). The default is 20.\n\n" );
-	printf( "      -g, --gamma <FLOAT>\n"
+	printf( "      -g|--gamma <FLOAT>\n"
 			"          Recalculate order-specific alphas according to beta x gamma^(k-1)\n"
 			"          (for k > 0). The default is 3.\n\n" );
 	printf( "      --extend <INTEGER>{1,2}\n"
@@ -590,17 +590,17 @@ void Global::printHelpOutput(){
 				"          mononucleotides instead of lower-order probabilities.\n\n" );
 	}
 
-	printf( "  Options for background (homogeneous) BMMs\n"
-			"      -K <INTEGER>\n"
+	printf( "  Options for the (homogeneous) background BMM\n" );
+	printf( "      -K <INTEGER>\n"
 			"          Order. The default is 2.\n\n" );
-	printf( "      -A, --Alpha <FLOAT>\n"
-			"          Prior strength. The default is 10.\n\n" );
+	printf( "      -A|--Alpha <FLOAT>\n"
+			"          Prior strength. The default is 10.0.\n\n" );
 
 	printf( "  EM options.\n" );
 	printf( "      -q <FLOAT>\n"
 			"          Prior probability for a sequence to contain a motif. The default is\n"
 			"          0.9.\n\n" );
-	printf( "      -e, --epsilon <FLOAT>\n"
+	printf( "      -e|--epsilon <FLOAT>\n"
 			"          The EM algorithm is deemed to be converged when the sum over the\n"
 			"          absolute differences in BMM parameters from successive EM rounds is\n"
 			"          smaller than epsilon. The default is 0.001\n\n" );
@@ -612,53 +612,80 @@ void Global::printHelpOutput(){
 	}
 
 	printf( "  XXmotif options\n" );
-	printf( "    --XX-ZOOPS\n" );
-	printf( "        Use the zero-or-one-occurrence-per-sequence model. This is the default.\n" );
-	printf( "    --XX-MOPS\n" );
-	printf( "        Use the multiple-occurrence-per-sequence model.\n" );
-	printf( "    --XX-OOPS\n" );
-	printf( "        Use the one-occurrence-per-sequence model.\n" );
-	printf( "    --XX-K <NONNEGATIVE INTEGER>\n" );
-	printf( "        Order of homogeneous Bayesian Markov model that models background\n"
-            "        sequences. The default order is 2 or 8 (--negSequenceSet).\n" );
-	printf( "    --XX-A, --XX-Alpha <FLOAT>\n" );
-	printf( "        Prior strength. The default is 10.0.\n");
-	printf("\t-g|--gaps <NUMBER>\t\t\tmaximum number of gaps used for start seeds [0-3] (DEFAULT: 0)\n");
-	printf("\t--type <TYPE>\t\t\t\tdefines what kind of start seeds are used (DEFAULT: ALL)\n");
-	printf("\t\t\t\t\t\t - possible types: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM\n");
-	printf("\t--merge-motif-threshold <MODE>\t\tdefines the similarity threshold for merging motifs (DEFAULT: HIGH)\n");
-	printf("\t\t\t\t\t\t - possible modes: LOW, MEDIUM, HIGH\n");
-
-	if(developerHelp)printf("\t--min-match-positions <INT>\t\tmin number of non-wildcard positions per motif (DEFAULT: 4 (NA), 2 (AA))\n");
-	printf("\t--max-match-positions <INT>\t\tmax number of positions per motif (DEFAULT: 17, higher values will lead to very long runtimes)\n");
-	printf("\n");
-	printf("\t--batch\t\t\t\t\tsuppress progress bars (reduce output size for batch jobs)\n");
-	if(developerHelp)printf("\t--maxSeqOcc\t\t\tmaximum number of motif occurrences per sequence)\n");
-	if(developerHelp)printf("\t--debug\t\t\t\t\tshow matrix for every iteration step\n");
-	printf("\t--maxPosSetSize <NUMBER>\t\tmaximum number of sequences from the positive set used [DEFAULT: all]\n");
-	printf("\t-h|--help\t\t\t\tprint this help page\n");
-	printf("\t--trackedMotif <SEED>\t\t\tinspect extensions and refinement of a given seed (DEFAULT: not used)\n");
-	if(developerHelp)printf("\t--neff-states <NUMBER>\t\t\teffective number of different states in one IUPAC extension (DEFAULt: 6)\n");
-	if(developerHelp)printf("\t--neff-pwm <NUMBER>\t\t\teffective number of different states in one PWM column (DEFAULt: 10 (NA), 63(AA))\n");
-	if(developerHelp)printf("\t--gapOpening <NUMBER>\t\t\tbit penalty for every opened gap\n");
-	if(developerHelp)printf("\t--gapExtension <NUMBER>\t\t\tbit penalty for every extended gap position\n");
-	printf("\n");
-	printf("Using conservation information\n");
-	printf("\t--format FASTA|MFASTA\t\t\tdefines what kind of format the input sequences have (DEFAULT: FASTA)\n");
-	printf("\t--maxMultipleSequences <NUMBER>\t\tmaximum number of sequences used in an alignment [DEFAULT: all]\n");
-	if(developerHelp)printf("\t--cons-length <NUMBER>\t\tused nucleotides for conservation pVal calculation [DEFAULT: 8]\n");
-	printf("\n");
-	printf("Using localization information\n");
-	printf("\t--localization\t\t\t\tuse localization information to calculate combined P-values \n\
-			\t\t\t(sequences should have all the same length)\n");
-	if( developerHelp ) printf( "\t--localization-ranking\t\t\trank motifs by localization P-values\n" );
-	printf("\t--downstream <NUMBER>\t\t\tnumber of residues in positive set downstream of anchor point (DEFAULT: 0)\n");
-	printf("\n");
-	printf("Start with self defined motif:\n");
-	printf("\t-m|--startMotif <MOTIF>\t\t\tStart motif (IUPAC characters)\n");
-	printf("\t-p|--profileFile <FILE>\t\t\tprofile file\n");
-	printf("\t--startRegion <NUMBER>\t\t\texpected start position for motif occurrences relative to anchor point (--localization)\n");
-	printf("\t--endRegion <NUMBER>\t\t\texpected end position for motif occurrences relative to anchor point (--localization)\n");
+	printf( "      --XX-ZOOPS\n"
+			"          Use the zero-or-one-occurrence-per-sequence model. This is the\n"
+			"          default.\n\n" );
+	printf( "      --XX-MOPS\n"
+			"          Use the multiple-occurrence-per-sequence model.\n\n" );
+	printf( "      --XX-OOPS\n"
+			"          Use the one-occurrence-per-sequence model.\n\n" );
+	printf( "      --XX-K <INTEGER>\n"
+			"          Order of the (homogeneous) background BMM. The default is 2 (when\n"
+			"          learned on positive) or 8 (when learned on background sequences).\n\n" );
+	printf( "      --XX-A|--XX-Alpha <FLOAT>\n"
+			"          Prior strength. The default is 10.0.\n\n");
+	printf( "      --XX-seeds ALL|FIVEMERS|PALINDROME|TANDEM|NOPALINDROME|NOTANDEM\n"
+			"          Define the nature of seeds. The default is to start using ALL seed\n"
+			"          variants.\n\n");
+	printf( "      --XX-gaps 0|1|2|3\n"
+			"          Maximum number of gaps used for start seeds. The default is 0.\n\n");
+	printf( "      --XX-mergeMotifsThreshold LOW|MEDIUM|HIGH\n"
+			"          Define the similarity threshold for merging PWMs in the refinement\n"
+			"          phase. The default is to merge PWMs with LOW similarity in order to\n"
+			"          reduce runtime.\n\n");
+	if( developerHelp ){
+		printf( "      --XX-minMatchPositions <INTEGER>\n"
+				"          Minimum number of non-wildcard motif positions. The default is 4.\n\n" );
+		printf( "      --XX-maxPositions <INTEGER>\n"
+				"          Maximum number of motif positions. The default is 17.\n\n" );
+		printf( "      --XX-maxOccurrencePerSequence\n"
+				"          Maximum number of motif occurrences per sequence.\n\n");
+		printf( "      --XX-maxNumberPosSequences <INTEGER>\n"
+				"          Maximum number of sequences to use from positive sequences. The\n"
+				"          default is to use all sequences.\n\n");
+		printf( "      --XX-track <SEED>\n"
+				"          Track extensions and refinements of IUPAC <SEED>.\n\n");
+		printf( "      --effectiveIUPACStateNumber <INTEGER>\n"
+				"          Effective number of different states in a single IUPAC extension. The\n"
+				"          default is 6.\n\n");
+		printf( "      --effectivePWMStateNumber <INTEGER>\n"
+				"          Effective number of different states in a single PWM column. The\n"
+				"          default is 10.\n\n");
+		printf( "      --gapOpening <NUMBER>\n"
+				"          Bit penalty for each gap opening\n\n");
+		printf( "      --gapExtension <INTEGER>\n"
+				"          Bit penalty for each gap extension.\n\n");
+		printf( "      --cons-length <INTEGER>\n"
+				"          Number of nucleotides used to calculate conservation p-values. The\n"
+				"          default is 8.\n\n");
+	}
+	printf( "      --format FASTA|MFASTA\n"
+			"          Use conservation information from multiple sequence\n"
+			"          alignments in MFASTA format or provide positive sequences in FASTA\n"
+			"          format (default).\n\n");
+	printf( "      --maxMFASTASequences <INTEGER>\n"
+			"          Maximum number of sequences to use from multiple sequence alignments.\n"
+			"          By default, all sequences are used.\n\n" );
+	printf( "      --localization\n"
+			"          Calculate p-values for positional clustering of motif occurrences in\n"
+			"          positive sequences of equal length. Improves the sensitivity to find\n"
+			"          weak, positioned motifs.\n\n" );
+	printf( "      --localizationRanking\n"
+			"          Rank motifs according to localization statistics.\n\n" );
+	printf( "      --downstreamPositions <INTEGER>\n"
+			"          Distance between the anchor position (e.g. the transcription start\n"
+			"          site) and the last positive sequence nucleotide. Corrects motif\n"
+			"          positions in result plots. The default is 0.\n\n");
+	printf( "      -m|--startMotif <MOTIF>\t\t\tStart motif (IUPAC characters)\n");
+	printf( "      -p|--startProfile <FILE>\t\t\tprofile file\n");
+	printf( "      --startRegion <NUMBER>\t\t\texpected start position for motif occurrences relative to anchor point (--localization)\n");
+	printf( "      --endRegion <NUMBER>\t\t\texpected end position for motif occurrences relative to anchor point (--localization)\n");
+	if( developerHelp ){
+		printf( "      --XX-debug\n"
+				"          Show PWMs during refinement phase.\n\n");
+	}
+	printf( "      --XX-batch\n"
+			"          Suppress progress bars\n\n" );
 
 	if( developerHelp ){
 		printf( "  Options for weighting positive sequences(*)\n" );
@@ -699,11 +726,11 @@ void Global::printHelpOutput(){
 		printf( "      --quantileToBindingSiteBg <FLOAT>\n"
 				"          The quantile of intensities (or ranks) that defines the background\n"
 				"          intensity (rank) used to translate intensities (ranks) into weights.\n"
-				"          The weight of binding sites with intensities (ranks) below (above)"
+				"          The weight of binding sites with intensities (ranks) below (above)\n"
 				"          the background intensity (rank) is set to zero. The default is 0.0.\n\n" );
 		printf( "      --intensityToBindingSiteBg <FLOAT>\n"
 				"          The intensity that defines the background intensity used to translate\n"
-				"          intensities into weights. The weight of binding sites with"
+				"          intensities into weights. The weight of binding sites with\n"
 				"          intensities below the background intensity is set to zero. The\n"
 				"          default is the minimum intensity of binding sites.\n\n" );
 		printf( "      --rankToBindingSiteBg <INTEGER>\n"
@@ -735,9 +762,11 @@ void Global::printHelpOutput(){
 			"          Write optimized BMM(s) to disk.\n\n" );
 	printf( "      --verbose\n"
 			"          Verbose console printouts.\n\n" );
+	printf( "      -h, --help\n"
+			"          Printout this help and exist.\n\n" );
 	if( developerHelp ){
 		printf( "      --saveEMLikelihoods (*)\n"
-				"          Write sequence likelihoods and positional odds scores to disk after"
+				"          Write sequence likelihoods and positional odds scores to disk after\n"
 				"          each EM iteration.\n\n" );
 		printf( "      --saveEMBMMs (*)\n"
 				"          Write BBM(s) to disk after each EM iteration.\n\n" );
