@@ -132,7 +132,7 @@ float Global::countsOffset = 0.0f;
 /*
  * higher-order modeling and EM mode
  */
-bool Global::em = false;
+bool Global::em = true;
 
 /*
  * Parameters to initialize models from file
@@ -170,10 +170,10 @@ int Global::markovModelLength = 0;
  */
 std::vector<int> Global::nrModels;
 /*
- * min. number of XXmotif models used to initialize Markov models. Independent
+ * min. number of XXmotif PWMs used to initialize Markov models. Independent
  * on pValueThreshold and minOccurrence
  */
-int Global::minModels = 0;
+int Global::minModels = 1;
 /*
  * max. number of XXmotif models used to initialize Markov models
  */
@@ -184,10 +184,10 @@ int Global::maxModels = std::numeric_limits<int>::max();
  */
 double Global::pValueThreshold = 1.0;
 /*
- * min. percentage of sequences containing a binding site instance. Not applied
+ * min. fraction of sequences containing a binding site instance. Not applied
  * to min. number of models
  */
-float Global::minOccurrence = 0.0f;
+float Global::minOccurrence = 0.05f;
 /*
  * add columns to the left and right of XXmotif models used to initialize Markov
  * models
@@ -206,12 +206,21 @@ bool Global::msq = false;
 /*
  * Markov model order
  */
-int Global::modelOrder = 0;
+int Global::modelOrder = 2;
 /*
- * Markov model pseudo-counts factor(s). Markov model order k fixes vector size
- * to k+1
+ * order-specific prior strength. Order k fixes vector size to k+1.
  */
-std::vector<float> Global::alpha( modelOrder+1, 10.0f );
+std::vector<float> Global::alpha( modelOrder+1, 1.0f );
+/*
+ * calculate order-specific alphas according to beta x gamma^(k-1)
+ * (for k > 0).
+ */
+float Global::beta = 20.0f;
+/*
+ * calculate order-specific alphas according to beta x gamma^(k-1)
+ * (for k > 0).
+ */
+float Global::gamma = 3.0f;
 
 /*
  * learn hyper parameter alpha during interpolation of markov models
@@ -234,7 +243,7 @@ bool Global::positionSpecificAlphas = false;
 /*
  * interpolate between higher- and lower-order probabilities
  */
-bool Global::interpolate = false;
+bool Global::interpolate = true;
 
 /*
  * Interpolated Markov background model parameters
@@ -243,7 +252,7 @@ bool Global::interpolate = false;
 /*
  * Background model order
  */
-int Global::modelOrderBg = 0;
+int Global::modelOrderBg = 2;
 /*
  * Background model pseudo-counts factor
  */
@@ -261,7 +270,7 @@ bool Global::noExpectationMaximizationPhase = false;
  * specificity factor approximates the percentage of sequences contributing to
  * the Markov model
  */
-float Global::q = 0.1f;
+float Global::q = 0.9f;
 float Global::qmax = 0.99999f;
 /*
  * EM convergence parameter
@@ -454,7 +463,7 @@ Global::Global(int argc, char *argv[]){
 			if(i+1 < argc && strcmp(argv[i+1], "CLUSTALW") == 0) format = CLUSTALW;
 			if(i+1 < argc && strcmp(argv[i+1], "MFASTA") == 0) format = MFASTA;
 			if(i+1 < argc && strcmp(argv[i+1], "CUSTOM") == 0) format = CUSTOM;
-		}else if(strcmp(argv[i], "--negSet") == 0){
+		}else if(strcmp(argv[i], "--negSequenceSet") == 0){
 			negFile = argv[i+1];
 		}else if(strcmp(argv[i], "--lcf") == 0){
 			lowComplexityFilter = true;
@@ -516,74 +525,85 @@ Global::Global(int argc, char *argv[]){
  * improve readability in non-EM parts */
 void Global::printHelpOutput(){
 
-	bool developerHelp = true; /* use emHelp & emDeveloperHelp to enable EM-specific help */
+	bool developerHelp = true; // display developer-specific options
 
 	printf( "BaMM!motif version 1.0\n" );
 	printf( "\n" );
 	printf( "SYNOPSIS\n" );
-	printf( "      BaMMmotif DIR FILE [OPTIONS]\n\n" );
+	printf( "      BaMMmotif DIRPATH FILEPATH [OPTIONS]\n\n" );
 	printf( "DESCRIPTION\n" );
-	printf( "      Bayesian Markov model motif discovery software.\n\n" );
-	printf( "      DIR\n"
-			"          Output directory for all results.\n\n" );
-	printf( "      FILE\n"
+	printf( "      Bayesian Markov Model motif discovery software.\n\n" );
+	printf( "      DIRPATH\n"
+			"          Output directory for the results.\n\n" );
+	printf( "      FILEPATH\n"
 			"          FASTA file with positive sequences of equal length.\n\n" );
 
 	printf("OPTIONS\n");
-	printf( "      --negSequenceSet <FILE>\n"
-			"          FASTA file with negative/background sequences.\n\n" );
+	printf( "  Sequence options\n" );
+	printf( "      --negSequenceSet <FILEPATH>\n"
+			"          FASTA file with negative/background sequences used to learn the\n"
+			"          (homogeneous) background BMM. If not specified, the background BMM is\n"
+			"          learned from the positive sequences.\n\n" );
 	printf( "      --reverseComp\n"
-			"          Search motifs on both positive sequences and their reverse\n"
-			"          complements. This option is e.g. recommended when using positive\n"
-			"          sequences derived from ChIP-seq experiments.\n\n" );
+			"          Search motifs on both strands (positive sequences and reverse\n"
+			"          complements). This option is e.g. recommended when using sequences\n"
+			"          derived from ChIP-seq experiments.\n\n" );
+	if( developerHelp ){
+		printf( "      --maxPosSequences <INTEGER>\n"
+				"          Maximum number of positive sequences to read in. The default is to\n"
+				"          read in all sequences.\n\n");
+	}
 
-	printf( "  Options to initialize BMMs from file\n" );
-	printf( "      --bindingSiteFile <FILE>\n"
+	printf( "  Options to initialize a single BMM from file\n" );
+	printf( "      --bindingSiteFile <FILEPATH>\n"
 			"          File with binding sites of equal length (one per line).\n\n" );
-	printf( "      --markovModelFile <FILE>\n"
-			"          File with BMM probabilities (<FILE>.conds and <FILE>.probs).\n\n" );
+	printf( "      --markovModelFile <FILEPATH>\n"
+			"          File with BMM probabilities as obtained from BaMM!motif (omit\n"
+			"          filename extension).\n\n" );
 
-	printf( "  Options to initialize BMMs from XXmotif PWMs\n" );
-	printf( "      --PWMRank <INTEGER> [<INTEGER>...]\n"
-			"          Rank(s) of PWM(s) in XXmotif results. Ignores the remaining options\n"
-			"          to initialize BMMs from PWMs.\n\n" );
-	printf( "      --minPWMNumber <INTEGER>\n"
-			"          Minimum number of PWMs. Ignores the options --maxPvalue and\n"
-			"          --minOccurrence. The default is 1.\n\n" );
-	printf( "      --maxPWMNumber <INTEGER>\n"
+	printf( "  Options to initialize one or more BMMs from XXmotif PWMs\n" );
+	printf( "      --minPWMs <INTEGER>\n"
+			"          Minimum number of PWMs. The options --maxPValue and --minOccurrence\n"
+			"          are ignored. The default is 1.\n\n" );
+	printf( "      --maxPWMs <INTEGER>\n"
 			"          Maximum number of PWMs.\n\n" );
 	printf( "      --maxPValue <FLOAT>\n"
 			"          Maximum p-value of PWMs. This filter is not applied to the top\n"
-			"          minimum number of PWMs (--minPWMNumber). The default is 1.0.\n\n" );
+			"          minimum number of PWMs (see --minPWMs). The default is 1.0.\n\n" );
 	printf( "      --minOccurrence <FLOAT>\n"
-			"          Minimum fraction of sequences that contain a PWM instance. This\n"
-			"          filter is not applied to the top minimum number of PWMs\n"
-			"          (--minPWMNumber). The default is 0.05.\n\n" );
-
+			"          Minimum fraction of sequences that contain the motif. This filter is\n"
+			"          not applied to the top minimum number of PWMs (see --minPWMs). The\n"
+			"          default is 0.05.\n\n" );
+	printf( "      --rankPWMs <INTEGER> [<INTEGER>...]\n"
+			"          PWM ranks in XXmotif results. The former options to initialize BMMs\n"
+			"          from PWMs are ignored.\n\n" );
 	if( developerHelp ){
-		printf( "  Options to initialize BMMs from XXmotif PWMs or binding site files\n" );
 		printf( "      --msq (*)\n"
-				"          Calculate BMM-specific q value from PWM-specific fraction of\n"
-				"          sequences that contain a corresponding PWM instance.\n\n" );
+				"          Set the prior probability for a positive sequence to contain a motif\n"
+				"          (see -q) to the fraction of sequences that contain a binding site\n"
+				"          instance that XXmotif used to build the PWM. Since the prior\n"
+				"          probability is a global parameter this option only works for a single\n"
+				"          PWM.\n\n" );
 	}
 
 	printf( "  Options for (inhomogeneous) motif BMMs\n" );
 	printf( "      -k <INTEGER>\n"
 			"          Order. The default is 2.\n\n" );
 	printf( "      -a|--alpha <FLOAT> [<FLOAT>...]\n"
-			"          Order-specific prior strength. The default is 1 (for k = 0) and 20 x\n"
-			"          3^(k-1) (for k > 0). Ignores the options -b/--beta and -g/--gamma.\n\n" );
+			"          Order-specific prior strength. The default is 1.0 (for k = 0) and\n"
+			"          20 x 3^(k-1) (for k > 0). The options -b and -g are ignored.\n\n" );
 	printf( "      -b|--beta <FLOAT>\n"
-			"          Recalculate order-specific alphas according to beta x gamma^(k-1)\n"
-			"          (for k > 0). The default is 20.\n\n" );
+			"          Calculate order-specific alphas according to beta x gamma^(k-1) (for\n"
+			"          k > 0). The default is 20.0.\n\n" );
 	printf( "      -g|--gamma <FLOAT>\n"
-			"          Recalculate order-specific alphas according to beta x gamma^(k-1)\n"
-			"          (for k > 0). The default is 3.\n\n" );
+			"          Calculate order-specific alphas according to beta x gamma^(k-1) (for\n"
+			"          k > 0). The default is 3.0.\n\n" );
 	printf( "      --extend <INTEGER>{1,2}\n"
 			"          Extend BMMs by adding uniformly initialized positions to the left\n"
 			"          and/or right of initial BMMs. Invoking e.g. with --extend 0 2 adds\n"
-			"          two positions to the right of initial BMMs. By default, BMMs are not\n"
-			"          extended.\n\n" );
+			"          two positions to the right of initial BMMs. Invoking with --extend 2\n"
+			"          adds two positions to both sides of initial BMMs. By default, BMMs\n"
+			"          are not being extended.\n\n" );
 	if( developerHelp ){
 		printf( "      --nonBayesian (*)\n"
 				"          Calculate prior probabilities from background frequencies of\n"
@@ -598,98 +618,104 @@ void Global::printHelpOutput(){
 
 	printf( "  EM options.\n" );
 	printf( "      -q <FLOAT>\n"
-			"          Prior probability for a sequence to contain a motif. The default is\n"
-			"          0.9.\n\n" );
+			"          Prior probability for a positive sequence to contain a motif. The\n"
+			"          default is 0.9.\n\n" );
 	printf( "      -e|--epsilon <FLOAT>\n"
 			"          The EM algorithm is deemed to be converged when the sum over the\n"
-			"          absolute differences in BMM parameters from successive EM rounds is\n"
-			"          smaller than epsilon. The default is 0.001\n\n" );
+			"          absolute differences in BMM probabilities from successive EM rounds\n"
+			"          is smaller than epsilon. The default is 0.001.\n\n" );
 	if( developerHelp ){
 		printf( "      --maxEMIterations <INTEGER> (*)\n"
-				"          Maximum number of EM iterations.\n\n" );
+				"          Limit the number of EM iterations.\n\n" );
 		printf( "      --noEM (*)\n"
 				"          Initialize BMMs only.\n\n" );
 	}
 
 	printf( "  XXmotif options\n" );
 	printf( "      --XX-ZOOPS\n"
-			"          Use the zero-or-one-occurrence-per-sequence model. This is the\n"
-			"          default.\n\n" );
+			"          Use the zero-or-one-occurrence-per-sequence model (default).\n\n" );
 	printf( "      --XX-MOPS\n"
 			"          Use the multiple-occurrence-per-sequence model.\n\n" );
 	printf( "      --XX-OOPS\n"
 			"          Use the one-occurrence-per-sequence model.\n\n" );
-	printf( "      --XX-K <INTEGER>\n"
-			"          Order of the (homogeneous) background BMM. The default is 2 (when\n"
-			"          learned on positive) or 8 (when learned on background sequences).\n\n" );
-	printf( "      --XX-A|--XX-Alpha <FLOAT>\n"
-			"          Prior strength. The default is 10.0.\n\n");
 	printf( "      --XX-seeds ALL|FIVEMERS|PALINDROME|TANDEM|NOPALINDROME|NOTANDEM\n"
-			"          Define the nature of seeds. The default is to start using ALL seed\n"
-			"          variants.\n\n");
+			"          Define the nature of seed patterns. The default is to start using ALL\n"
+			"          seed pattern variants.\n\n" );
 	printf( "      --XX-gaps 0|1|2|3\n"
-			"          Maximum number of gaps used for start seeds. The default is 0.\n\n");
+			"          Maximum number of gaps used for seed patterns. The default is 0.\n\n");
+	printf( "      --XX-pseudoCounts <FLOAT>\n"
+			"          Percentage of pseudocounts. The default is 10.0.\n\n" );
 	printf( "      --XX-mergeMotifsThreshold LOW|MEDIUM|HIGH\n"
-			"          Define the similarity threshold for merging PWMs in the refinement\n"
-			"          phase. The default is to merge PWMs with LOW similarity in order to\n"
-			"          reduce runtime.\n\n");
+			"          Define the similarity threshold used to merge PWMs. The default is to\n"
+			"          merge PWMs with LOW similarity in order to reduce runtime.\n\n");
+	printf( "      --XX-maxPositions <INTEGER>\n"
+			"          Limit the number of motif positions to reduce runtime. The default is\n"
+			"          17.\n\n" );
+	printf( "      --XX-noLengthOptimPWMs\n"
+			"          Omit the length optimization of PWMs.\n\n");
+	printf( "      --XX-K <INTEGER>\n"
+			"          Order of the (homogeneous) background BMM. The default is either 2\n"
+			"          (when learned on positive sequences) or 8 (when learned on background\n"
+			"          sequences).\n\n" );
+	printf( "      --XX-A <FLOAT>\n"
+			"          Prior strength of the (homogeneous) background BMM. The default is\n"
+			"          10.0.\n\n");
+	printf( "      --XX-jumpStartPatternStage <STRING>\n"
+			"          Jump-start pattern stage using an IUPAC pattern string.\n\n");
+	printf( "      --XX-jumpStartPWMStage <FILEPATH>\n"
+			"          Jump-start PWM stage reading in a PWM from file.\n\n" );
 	if( developerHelp ){
 		printf( "      --XX-minMatchPositions <INTEGER>\n"
 				"          Minimum number of non-wildcard motif positions. The default is 4.\n\n" );
-		printf( "      --XX-maxPositions <INTEGER>\n"
-				"          Maximum number of motif positions. The default is 17.\n\n" );
-		printf( "      --XX-maxOccurrencePerSequence\n"
+		printf( "      --XX-maxMotifsPerSequence\n"
 				"          Maximum number of motif occurrences per sequence.\n\n");
-		printf( "      --XX-maxNumberPosSequences <INTEGER>\n"
-				"          Maximum number of sequences to use from positive sequences. The\n"
-				"          default is to use all sequences.\n\n");
-		printf( "      --XX-track <SEED>\n"
-				"          Track extensions and refinements of IUPAC <SEED>.\n\n");
-		printf( "      --effectiveIUPACStateNumber <INTEGER>\n"
+		printf( "      --XX-track <STRING>\n"
+				"          Track extensions and refinements of IUPAC pattern string.\n\n");
+		printf( "      --XX-effectiveIUPACStates <INTEGER>\n"
 				"          Effective number of different states in a single IUPAC extension. The\n"
 				"          default is 6.\n\n");
-		printf( "      --effectivePWMStateNumber <INTEGER>\n"
+		printf( "      --XX-effectivePWMStates <INTEGER>\n"
 				"          Effective number of different states in a single PWM column. The\n"
 				"          default is 10.\n\n");
-		printf( "      --gapOpening <NUMBER>\n"
-				"          Bit penalty for each gap opening\n\n");
-		printf( "      --gapExtension <INTEGER>\n"
+		printf( "      --XX-gapOpening <NUMBER>\n"
+				"          Bit penalty for each gap opening.\n\n");
+		printf( "      --XX-gapExtension <INTEGER>\n"
 				"          Bit penalty for each gap extension.\n\n");
-		printf( "      --cons-length <INTEGER>\n"
-				"          Number of nucleotides used to calculate conservation p-values. The\n"
-				"          default is 8.\n\n");
 	}
-	printf( "      --format FASTA|MFASTA\n"
-			"          Use conservation information from multiple sequence\n"
-			"          alignments in MFASTA format or provide positive sequences in FASTA\n"
-			"          format (default).\n\n");
-	printf( "      --maxMFASTASequences <INTEGER>\n"
-			"          Maximum number of sequences to use from multiple sequence alignments.\n"
-			"          By default, all sequences are used.\n\n" );
-	printf( "      --localization\n"
+	printf( "      --XX-localization\n"
 			"          Calculate p-values for positional clustering of motif occurrences in\n"
 			"          positive sequences of equal length. Improves the sensitivity to find\n"
-			"          weak, positioned motifs.\n\n" );
-	printf( "      --localizationRanking\n"
+			"          weak but positioned motifs.\n\n" );
+	printf( "      --XX-localizationRanking\n"
 			"          Rank motifs according to localization statistics.\n\n" );
-	printf( "      --downstreamPositions <INTEGER>\n"
+	printf( "      --XX-downstreamPositions <INTEGER>\n"
 			"          Distance between the anchor position (e.g. the transcription start\n"
 			"          site) and the last positive sequence nucleotide. Corrects motif\n"
 			"          positions in result plots. The default is 0.\n\n");
-	printf( "      -m|--startMotif <MOTIF>\t\t\tStart motif (IUPAC characters)\n");
-	printf( "      -p|--startProfile <FILE>\t\t\tprofile file\n");
-	printf( "      --startRegion <NUMBER>\t\t\texpected start position for motif occurrences relative to anchor point (--localization)\n");
-	printf( "      --endRegion <NUMBER>\t\t\texpected end position for motif occurrences relative to anchor point (--localization)\n");
 	if( developerHelp ){
+		printf( "      --XX-startPosEnrichedReg <INTEGER>\n"
+				"          Expected start position of region enriched for motif occurrences,\n"
+				"          relative to anchor position (see --localization).\n\n");
+		printf( "      --XX-endPosEnrichedReg <INTEGER>\n"
+				"          Expected end position of region enriched for motif occurrences,\n"
+				"          relative to anchor position (see --localization).\n\n");
+	}
+	if( developerHelp ){
+		printf( "      --XX-format FASTA|MFASTA\n"
+				"          Use conservation information from multiple sequence alignments in\n"
+				"          FASTA format or provide positive sequences in FASTA format (default).\n\n");
+		printf( "      --XX-maxMFASTASequences <INTEGER>\n"
+				"          Limit the number of sequences to use from multiple sequence\n"
+				"          alignments. By default, all sequences are used.\n\n" );
 		printf( "      --XX-debug\n"
-				"          Show PWMs during refinement phase.\n\n");
+				"          Printout evolving PWMs during the PWM stage.\n\n");
 	}
 	printf( "      --XX-batch\n"
-			"          Suppress progress bars\n\n" );
+			"          Suppress progress bars.\n\n" );
 
 	if( developerHelp ){
-		printf( "  Options for weighting positive sequences(*)\n" );
-		printf( "      --posSequenceIntensities <FILE>\n"
+		printf( "  Options for weighting positive sequences (*)\n" );
+		printf( "      --posSequenceIntensities <FILEPATH>\n"
 				"          File with intensities for positive sequences (one per line) used to\n"
 				"          weight sequences in the EM algorithm. The order of intensities must\n"
 				"          conform to the order of positive sequences. Higher intensities\n"
@@ -699,45 +725,45 @@ void Global::printHelpOutput(){
 				"          PWMs.\n\n" );
 		printf( "      --useRanks\n"
 				"          Use intensity ranks instead of intensities to calculate weights.\n\n" );
-		printf( "      --quantileToBg <FLOAT>\n"
+		printf( "      --backgroundQuantile <FLOAT>\n"
 				"          The quantile of intensities (or ranks) that defines the background\n"
 				"          intensity (rank) used to translate intensities (ranks) into weights.\n"
 				"          The weight of sequences with intensities (ranks) below (above) the\n"
 				"          background intensity (rank) is set to zero. The default is 0.0.\n\n" );
-		printf( "      --intensityToBg <FLOAT>\n"
+		printf( "      --backgroundIntensity <FLOAT>\n"
 				"          The intensity that defines the background intensity used to translate\n"
 				"          intensities into weights. The weight of sequences with intensities\n"
 				"          below the background intensity is set to zero. The default is the\n"
 				"          minimum intensity of positive sequences.\n\n" );
-		printf( "      --rankToBg <INTEGER>\n"
+		printf( "      --backgroundRank <INTEGER>\n"
 				"          The rank that defines the background rank used to translate ranks\n"
 				"          into weights. The weight of sequences with ranks above the background\n"
 				"          rank is set to zero. The default is the maximum rank (i.e. the\n"
-				"          number) of positive sequences.\n\n" );
+				"          number of positive sequences).\n\n" );
 
 		printf( "  Options for weighting binding sites (*)\n" );
-		printf( "      --bindingSiteIntensities <FILE>\n"
+		printf( "      --bindingSiteIntensities <FILEPATH>\n"
 				"          File with intensities for binding site sequences (one per line) used\n"
 				"          to initialize BMMs from weighted binding sites. The order of\n"
 				"          intensities must conform to the order of sequences in the binding\n"
-				"          site file. Higher intensities produce higher weights.\n\n" );
+				"          sites file. Higher intensities produce higher weights.\n\n" );
 		printf( "      --useBindingSiteRanks\n"
 				"          Use intensity ranks instead of intensities to calculate weights.\n\n" );
-		printf( "      --quantileToBindingSiteBg <FLOAT>\n"
+		printf( "      --bindingSiteBackgroundQuantile <FLOAT>\n"
 				"          The quantile of intensities (or ranks) that defines the background\n"
 				"          intensity (rank) used to translate intensities (ranks) into weights.\n"
 				"          The weight of binding sites with intensities (ranks) below (above)\n"
 				"          the background intensity (rank) is set to zero. The default is 0.0.\n\n" );
-		printf( "      --intensityToBindingSiteBg <FLOAT>\n"
+		printf( "      --bindingSiteBackgroundIntensity <FLOAT>\n"
 				"          The intensity that defines the background intensity used to translate\n"
 				"          intensities into weights. The weight of binding sites with\n"
 				"          intensities below the background intensity is set to zero. The\n"
 				"          default is the minimum intensity of binding sites.\n\n" );
-		printf( "      --rankToBindingSiteBg <INTEGER>\n"
+		printf( "      --bindingSiteBackgroundRank <INTEGER>\n"
 				"          The rank that defines the background rank used to translate ranks\n"
 				"          into weights. The weight of binding sites with ranks above the\n"
 				"          background rank is set to zero. The default is the maximum rank (i.e.\n"
-				"          the number) of binding sites.\n\n" );
+				"          the number of binding sites).\n\n" );
 	}
 
 	printf( "  Options to score sequences\n" );
@@ -745,25 +771,21 @@ void Global::printHelpOutput(){
 			"          Score positive (training) sequences with optimized BMMs.\n\n" );
 	printf( "      --scoreNegSequenceSet\n"
 			"          Score background (training) sequences with optimized BMMs.\n\n" );
-	printf( "      --scoreTestSequenceSet <FILE> [<FILE>...]\n"
+	printf( "      --scoreTestSequenceSet <FILEPATH> [<FILEPATH>...]\n"
 			"          Score test sequences with optimized BMMs. Test sequences can be\n"
 			"          provided in a single or multiple FASTA files.\n\n" );
 	if( developerHelp ){
 		printf( "      --evaluatePWMs (*)\n"
-				"          Score sequences with XXmotif PWMs\n\n." );
+				"          Score sequences with XXmotif PWMs.\n\n" );
 		printf( "      --calculateLogScores (*)\n"
 				"          Calculate log instead of log-odds scores.\n\n" );
 	}
 
 	printf( "  Output options\n" );
-	printf( "      --saveInitBMMss\n"
+	printf( "      --saveInitBMMs\n"
 			"          Write initialized BMM(s) to disk.\n\n" );
 	printf( "      --saveBMMs\n"
 			"          Write optimized BMM(s) to disk.\n\n" );
-	printf( "      --verbose\n"
-			"          Verbose console printouts.\n\n" );
-	printf( "      -h, --help\n"
-			"          Printout this help and exist.\n\n" );
 	if( developerHelp ){
 		printf( "      --saveEMLikelihoods (*)\n"
 				"          Write sequence likelihoods and positional odds scores to disk after\n"
@@ -771,9 +793,13 @@ void Global::printHelpOutput(){
 		printf( "      --saveEMBMMs (*)\n"
 				"          Write BBM(s) to disk after each EM iteration.\n\n" );
 	}
+	printf( "      --verbose\n"
+			"          Verbose terminal printouts.\n\n" );
+	printf( "      -h, --help\n"
+			"          Printout this help.\n\n" );
 
 	if( developerHelp ){
-		printf( "      (*) Developer options\n" );
+		printf( "      (*) Developer options\n\n" );
 	}
 
 	exit(-1);
@@ -807,15 +833,14 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	if( ops >> OptionPresent( 'h', "help" ) ){
 		return false;
 	}
-	ops >> OptionPresent( "debug", DEBUG );
+	ops >> OptionPresent( "XX-debug", DEBUG );
 	//ops >> OptionPresent( "aa", aa );
-	ops >> OptionPresent( "em", em );
 	ops >> OptionPresent( "evaluatePWMs", evaluatePWMs );
 
 	/* mode-dependent default setting */
 
 	order = ( negFile == NULL ) ? 2 : 8; // background model order
-	mergeMode = HIGH;
+	mergeMode = LOW;
 	maxMatchPositions = 17;
 	minMatchPositions = 5;
 
@@ -824,18 +849,18 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	 * * user
 	 */
 
-	ops >> OptionPresent( "batch", batch_mode );
+	ops >> OptionPresent( "XX-batch", batch_mode );
 	if( batch_mode ){
 		printf( "Running in batch mode: no progress bars.\n" );
 	}
 
-	if( ops >> OptionPresent( "no-pwm-length-optimization" ) ){
+	if( ops >> OptionPresent( "XX-noLengthOptimPWMs" ) ){
 		maximizeMotifLength = false;
 	}
 
-	ops >> OptionPresent( "mops", multipleOccurrence );
-	ops >> OptionPresent( "oops", oneOccurrence );
-	ops >> OptionPresent( "zoops", zeroOrOneOccurrence );
+	ops >> OptionPresent( "XX-MOPS", multipleOccurrence );
+	ops >> OptionPresent( "XX-OOPS", oneOccurrence );
+	ops >> OptionPresent( "XX-ZOOPS", zeroOrOneOccurrence );
 	if( ( oneOccurrence && multipleOccurrence) ||
 		  ( oneOccurrence && zeroOrOneOccurrence ) ||
 		  ( zeroOrOneOccurrence && multipleOccurrence ) ){
@@ -849,15 +874,10 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		&& !( multipleOccurrence ) ){
 		zeroOrOneOccurrence = true;
 	}
-	if( em && !( zeroOrOneOccurrence ) ){
-		fprintf( stderr, "--em requires the zero-or-one-occurrence-per-sequence "
-				 "(--zoops) mode.\n" );
-		exit(-1);
-	}
 
-	ops >> OptionPresent( "revcomp", revcomp );
+	ops >> OptionPresent( "reverseComp", revcomp );
 
-	ops >> OptionPresent( "localization", usePositionalProbs );
+	ops >> OptionPresent( "XX-localization", usePositionalProbs );
 	if( usePositionalProbs &&
 		( Global::posSet->max_leng != Global::posSet->min_leng ) ){
 		fprintf( stderr, "Localization information is only applicable for input"
@@ -865,7 +885,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		exit( -1 );
 	}
 	if( usePositionalProbs ){
-		ops >> OptionPresent( "localization-ranking", positionalProbsRanking );
+		ops >> OptionPresent( "XX-localizationRanking", positionalProbsRanking );
 	}
 
 	/*
@@ -875,12 +895,13 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	if( em ){
 		ops >> OptionPresent( "msq", msq );
-		ops >> OptionPresent( "interpolate", interpolate );
-		ops >> OptionPresent( "noExpectationMaximizationPhase",
-							   noExpectationMaximizationPhase );
-		ops >> OptionPresent( "initInts", initInts );
-		ops >> OptionPresent( "saveInitModels", saveInitModels );
-		ops >> OptionPresent( "saveModels", saveModels );
+		if( ops >> OptionPresent( "nonBayesian" ) ){
+			interpolate = false;
+		}
+		ops >> OptionPresent( "noEM", noExpectationMaximizationPhase );
+		ops >> OptionPresent( "useIntensitiesToInitBMMs", initInts );
+		ops >> OptionPresent( "saveInitBMMs", saveInitModels );
+		ops >> OptionPresent( "saveBMMs", saveModels );
 		ops >> OptionPresent( "verbose", verbose );
 		ops >> OptionPresent( "learnAlpha", learnHyperParameter );
 		ops >> OptionPresent( "posAlpha", positionSpecificAlphas );
@@ -890,9 +911,9 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	}
 
 	if( em || evaluatePWMs ){
-		ops >> OptionPresent( "testPosSet", testPosSequences );
-		ops >> OptionPresent( "testNegSet", testNegSequences );
-		ops >> OptionPresent( "logProbs", logProbs );
+		ops >> OptionPresent( "scorePosSequenceSet", testPosSequences );
+		ops >> OptionPresent( "scoreNegSequenceSet", testNegSequences );
+		ops >> OptionPresent( "calculateLogScores", logProbs );
 	}
 
 	/*
@@ -912,9 +933,9 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	 */
 
 	if( em ){
-		ops >> OptionPresent( "saveExpectationMaximizationLikelihoods",
+		ops >> OptionPresent( "saveEMLikelihoods",
 							   saveExpectationMaximizationLikelihoods );
-		ops >> OptionPresent( "saveExpectationMaximizationModels",
+		ops >> OptionPresent( "saveEMBMMs",
 							   saveExpectationMaximizationModels );
 	}
 
@@ -924,36 +945,36 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	 * * user
 	 */
 
-	ops >> Option( "negSet", negFile );
-	ops >> Option( "background-model-order", order );
+	ops >> Option( "negSequenceSet", negFile );
+	ops >> Option( "XX-K", order );
 
-	if( ops >> Option( "pseudo", pseudo ) ){
+	if( ops >> Option( "XX-pseudoCounts", pseudo ) ){
 		pseudo /= 100;
 	}
 
-	ops >> Option( 'g', "gaps", GAPS );
+	ops >> Option( "XX-gaps", GAPS );
 
-	ops >> Option( "type", type );
+	ops >> Option( "XX-seeds", type );
 	if( type == NO_VALID_MOTIF_TYPE ){
 		return false;
 	}
 
-	ops >> Option( "merge-motif-threshold", mergeMode );
+	ops >> Option( "XX-mergeMotifsThreshold", mergeMode );
 	if( mergeMode == NO_VALID_MERGE_MODE ){
 		return false;
 	}
 
-	if( ops >> Option( "max-match-positions", maxMatchPositions ) ){
+	if( ops >> Option( "XX-maxPositions", maxMatchPositions ) ){
 		if( maxMatchPositions > 26 ){
 			fprintf( stderr, "maxMatchPositions > 26 not possible.\n");
 			exit( -1 );
 		}
 	}
 
-	ops >> Option( "maxPosSetSize", maxPosSetSize );
+	ops >> Option( "maxPosSequences", maxPosSetSize );
 
 	std::string tr;
-	if( ops >> Option( "trackedMotif", tr ) ){
+	if( ops >> Option( "XX-track", tr ) ){
 	  trackedMotifs.insert( tr );
 	}
 
@@ -962,12 +983,12 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		return false;
 	}
 
-	ops >> Option( "maxMultipleSequences", maxMultipleSequences );
+	ops >> Option( "XX-maxMFASTASequences", maxMultipleSequences );
 
-	ops >> Option( "downstream", downstream );
+	ops >> Option( "XX-downstreamPositions", downstream );
 
-	ops >> Option( 'm', "startMotif", startMotif );
-	ops >> Option( 'p', "profileFile", profFile );
+	ops >> Option( 'm', "XX-jumpStartPatternStage", startMotif );
+	ops >> Option( 'p', "XX-jumpStartPWMStage", profFile );
 
  	int offset = posSet->max_leng - downstream;
 	if( ops >> Option( "startRegion", startRegion ) ){
@@ -1040,11 +1061,11 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				bindingSiteLength = L;
 			}
 
-			if( ops >> OptionPresent( "addColumns" ) ){
+			if( ops >> OptionPresent( "extend" ) ){
 				addColumns.clear();
-				ops >> Option( "addColumns", addColumns );
+				ops >> Option( "extend", addColumns );
 				if( addColumns.size() < 1 || addColumns.size() > 2 ){
-					fprintf( stderr, "--addColumns format error\n" );
+					fprintf( stderr, "Option --extend format error\n" );
 					exit( -1 );
 				}
 				if( addColumns.size() == 1 ){
@@ -1064,7 +1085,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				modelOrder = bindingSiteLength - 1;
 			}
 
-			if( ops >> Option( "bindingSiteIntsFile", bindingSiteIntsFile ) ){
+			if( ops >> Option( "bindingSiteIntensities", bindingSiteIntsFile ) ){
 
 				std::ifstream fs( bindingSiteIntsFile, std::ios_base::in );
 				if( fs.fail() ){
@@ -1086,7 +1107,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				}
 				fs.close();
 
-				ops >> OptionPresent( "bindingSiteRankWeighting",
+				ops >> OptionPresent( "useBindingSiteRanks",
 						              bindingSiteRankWeighting );
 
 				if( bindingSiteRankWeighting ){
@@ -1171,11 +1192,11 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				exit( -1 );
 			}
 
-			if( ops >> OptionPresent( "addColumns" ) ){
+			if( ops >> OptionPresent( "extend" ) ){
 				addColumns.clear();
-				ops >> Option( "addColumns", addColumns );
+				ops >> Option( "extend", addColumns );
 				if( addColumns.size() < 1 || addColumns.size() > 2 ){
-					fprintf( stderr, "--addColumns format error\n" );
+					fprintf( stderr, "Option --extend format error\n" );
 					exit( -1 );
 				}
 				if( addColumns.size() == 1 ){
@@ -1198,25 +1219,25 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			}
 
 			// number of one or more models in the ranking to pursue
-			if( ops >> OptionPresent( "nrModels" ) ){
-				ops >> Option( "nrModels", nrModels );
+			if( ops >> OptionPresent( "rankPWMs" ) ){
+				ops >> Option( "rankPWMs", nrModels );
 				std::sort( nrModels.begin(), nrModels.end() );
 			}
 			// min. number of models to pursue
-			ops >> Option( "minModels", minModels );
+			ops >> Option( "minPWMs", minModels );
 			// max. number of models to pursue
-			ops >> Option( "maxModels", maxModels );
+			ops >> Option( "maxPWMs", maxModels );
 			// max. p-value of models
-			ops >> Option( "maxPvalue", pValueThreshold );
+			ops >> Option( "maxPValue", pValueThreshold );
 			pValueThreshold = log( pValueThreshold );
 			// min. percentage of sequences containing a binding site instance
 			ops >> Option( "minOccurrence", minOccurrence );
 			// add columns (left, right) to models
-			if( ops >> OptionPresent( "addColumns" ) ){
+			if( ops >> OptionPresent( "extend" ) ){
 				addColumns.clear();
-				ops >> Option( "addColumns", addColumns );
+				ops >> Option( "extend", addColumns );
 				if( addColumns.size() < 1 || addColumns.size() > 2 ){
-					fprintf( stderr, "--addColumns format error\n" );
+					fprintf( stderr, "Option --extend format error\n" );
 					exit( -1 );
 				}
 				if( addColumns.size() == 1 ){
@@ -1225,10 +1246,10 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			}
 		}
 
-		if( ops >> Option( "sequenceIntsFile", sequenceIntsFile ) ){
+		if( ops >> Option( "posSequenceIntensities", sequenceIntsFile ) ){
 			std::ifstream fs( sequenceIntsFile, std::ios_base::in );
 			if( fs.fail() ){
-				fprintf( stderr, "Cannot open sequenceIntsFile %s\n",
+				fprintf( stderr, "Cannot open file with positive sequence intensities %s\n",
 						 Global::sequenceIntsFile );
 				exit( -1 );
 			}
@@ -1238,7 +1259,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 			while( fs >> weight ){
 				if( weight < 0.0f ){
-					fprintf( stderr, "Use non-negative sequence weights\n" );
+					fprintf( stderr, "Use nonnegative sequence weights\n" );
 					exit( -1 );
 				}
 				weights.push_back( weight );
@@ -1265,7 +1286,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				std::cout << std::endl;
 			}
 
-			ops >> OptionPresent( "rankWeighting", rankWeighting );
+			ops >> OptionPresent( "useRanks", rankWeighting );
 
 			// calculate weights
 			if( rankWeighting ){
@@ -1325,55 +1346,46 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			}
 		}
 
-		/* check specificity and pseudo-counts factor(s) */
-		unsigned checkSum = 0;
 		if( ops >> OptionPresent( 'q' ) ){
 			ops >> Option( 'q', q );
 			if( q <= 0 || q >= 1 ){
 				fprintf( stderr,
-						 "Specificity factor q restricted to 0 < q < 1.\n" );
+						 "Option -q restricted to 0 < q < 1.\n" );
 				exit( -1 );
 			}
-			checkSum = checkSum + 4;
 		}
 		if( ops >> OptionPresent( 'a', "alpha" ) ){
 			alpha.clear();
-			checkSum = checkSum + 2;
-		}
-		switch( checkSum ){
-		case 0:
-			break;
-		case 1:
-			break;
-		case 2:
 			ops >> Option( 'a', "alpha", alpha );
-			break;
-		case 4:
-			break;
-		case 5:
-			break;
-		case 6:
-			ops >> Option( 'a', "alpha", alpha );
-			break;
-		case 3: case 7:
-			fprintf( stderr, "Specify either eta (--eta) or alpha (--alpha).\n"
-					);
-			exit( -1 );
-		default:
-			fprintf( stderr, "Specificity and pseudo-counts factor fatal error."
-					"\n" );
-			exit( -1 );
-		}
-
-		/* interpolated Markov model order k determines pseudo-counts factor
-		 * vector size to be k+1
-		 *
-		 * remember: eta.size() equals alpha.size() */
-		if( static_cast<int>( alpha.size() ) != modelOrder+1 ){
-			if( static_cast<int>( alpha.size() ) > modelOrder+1 ){
-				alpha.resize( modelOrder+1 );
-			} else{
-				alpha.resize( modelOrder+1, alpha.back() );
+			if( static_cast<int>( alpha.size() ) != modelOrder+1 ){
+				if( static_cast<int>( alpha.size() ) > modelOrder+1 ){
+					alpha.resize( modelOrder+1 );
+				} else{
+					alpha.resize( modelOrder+1, alpha.back() );
+				}
+			}
+			float b;
+			if( ops >> OptionPresent( 'b', "beta" ) ){
+				ops >> Option( 'b', "beta", b );
+				fprintf( stderr, "Option -b is ignored.\n" );
+			}
+			float g;
+			if( ops >> OptionPresent( 'g', "gamma" ) ){
+				ops >> Option( 'g', "gamma", g );
+				fprintf( stderr, "Option -g is ignored.\n" );
+			}
+		} else{
+			if( ops >> OptionPresent( 'b', "beta" ) ){
+				ops >> Option( 'b', "beta", beta );
+			}
+			if( ops >> OptionPresent( 'g', "gamma" ) ){
+				ops >> Option( 'g', "gamma", gamma );
+			}
+			if( modelOrder > 0 ){
+				for( unsigned int i=1; i <= alpha.size(); i++ ){
+					alpha[i] = beta * powf( gamma,
+							   static_cast<float>( modelOrder )-1.0f );
+				}
 			}
 		}
 
@@ -1383,16 +1395,16 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	} else if( evaluatePWMs ){
 
 		// number of one or more models in the ranking to pursue
-		if( ops >> OptionPresent( "nrModels" ) ){
-			ops >> Option( "nrModels", nrModels );
+		if( ops >> OptionPresent( "rankPWMs" ) ){
+			ops >> Option( "rankPWMs", nrModels );
 			std::sort( nrModels.begin(), nrModels.end() );
 		}
 		// min. number of models to pursue
-		ops >> Option( "minModels", minModels );
+		ops >> Option( "minPWMs", minModels );
 		// max. number of models to pursue
-		ops >> Option( "maxModels", maxModels );
+		ops >> Option( "maxPWMs", maxModels );
 		// max. p-value of models
-		ops >> Option( "maxPvalue", pValueThreshold );
+		ops >> Option( "maxPValue", pValueThreshold );
 		pValueThreshold = log( pValueThreshold );
 		// min. percentage of sequences containing a binding site instance
 		ops >> Option( "minOccurrence", minOccurrence );
@@ -1409,8 +1421,8 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	ops >> Option( "final-filter", finalFilterThreshold );
 	finalFilterThreshold = log( finalFilterThreshold );
 
-	ops >> Option( "gapExtension", gapExtension );
-	ops >> Option( "gapOpening", gapOpening );
+	ops >> Option( "XX-gapExtension", gapExtension );
+	ops >> Option( "XX-gapOpening", gapOpening );
 
 	std::string thresh_init;
 	if( ops >> Option( "instance-threshold", thresh_init ) ) {
@@ -1421,8 +1433,8 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	ops >> Option( "maxIterations", maxIterations );
 	ops >> Option( "maxMotifLevel", maxMotifLevel );
-	ops >> Option( "maxSeqOcc", maxMotifsPerSequence );
-	ops >> Option( "min-match-positions", minMatchPositions );
+	ops >> Option( "XX-maxMotifsPerSequence", maxMotifsPerSequence );
+	ops >> Option( "XX-minMatchPositions", minMatchPositions );
 
 	/* neffs can be set identically (--neff) or seperately for discrete
 	 * (--neff-states) and PWM (--neff-pwm) phase */
@@ -1433,14 +1445,14 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		neff_pwm = n_eff;
 		neff_discrete = n_eff;
 	}
-	ops >> Option( "neff-states", neff_discrete );
-	ops >> Option( "neff-pwm", neff_pwm );
+	ops >> Option( "XX-effectiveIUPACStates", neff_discrete );
+	ops >> Option( "XX-effectivePWMStates", neff_pwm );
 
 	if( ops >> Option( "plusFrac", plusFrac ) ){
 		plusFrac /= 100;
 	}
 
-	ops >> Option( "pseudocounts-factor", pseudocountsFactor );
+	ops >> Option( "XX-A", pseudocountsFactor );
 	ops >> Option( "termFreqScale", dollarScaleFactor );
 
 	/*
@@ -1487,11 +1499,11 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	 */
 
 	if( em ){
-		ops >> Option( "epsilon", epsilon );
+		ops >> Option( 'e', "epsilon", epsilon );
 	}
 
 	if( em || evaluatePWMs ){
-		if( ops >> Option( "testSet", testSequenceFile ) ){
+		if( ops >> Option( "scoreTestSequenceSet", testSequenceFile ) ){
 			for( unsigned int i=0; i < testSequenceFile.size(); i++ ){
 				testSet.push_back( readSeqSet( const_cast<char*>(
 						           testSequenceFile.at(i).c_str() ), Global::A,

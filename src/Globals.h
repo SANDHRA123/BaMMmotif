@@ -278,10 +278,19 @@ public:
 	 */
 	static int modelOrder;
 	/*
-	 * Markov model pseudo-counts factor(s). Markov model order k fixes vector size
-	 * to k+1
+	 * order-specific prior strength. Order k fixes vector size to k+1.
 	 */
 	static std::vector<float> alpha;
+	/*
+	 * calculate order-specific alphas according to beta x gamma^(k-1)
+	 * (for k > 0).
+	 */
+	static float beta;
+	/*
+	 * calculate order-specific alphas according to beta x gamma^(k-1)
+	 * (for k > 0).
+	 */
+	static float gamma;
 
 	/*
 	 * learn hyper parameter alpha during interpolation of markov models
