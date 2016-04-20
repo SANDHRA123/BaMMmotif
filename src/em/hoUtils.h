@@ -22,8 +22,6 @@ using std::endl;
 
 double addLogspace( double x, double y );
 
-std::vector<float> alphaPseudoCountsFactor( std::vector<float> alpha, float q );
-
 char* baseFileName( char* name );
 
 void calculateWeights( std::vector<float> &x, float x_bg, bool ranks=false );
