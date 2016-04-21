@@ -547,7 +547,7 @@ public:
 	static void createDirectory(const char *s);
 private:
 	bool readCommandLineOptions(int argc, char *argv[]);
-	void printHelpOutput();
+	void printHelp();
 };
 
 inline char* Global::String(const char *s){

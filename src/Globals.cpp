@@ -437,12 +437,21 @@ bool Global::gaps = true;
  */
 std::list<ss_type> Global::testSet;
 
-/* TODO
- * improve readability & (remove) comment(s) */
-Global::Global(int argc, char *argv[]){
-	argv0 = std::string(argv[0]);
+Global::Global( int argc, char *argv[] ){
 
-	if(argc < 2) printHelpOutput();
+	argv0 = std::string( argv[0] );
+
+	if( argc < 2 ){
+		 // BaMMmotif
+		printHelp();
+	}
+	if( argc == 2 && ( strcmp( argv[1], "-h" ) == 0 || strcmp( argv[1], "--help"
+			                                                 ) == 0 ) ){
+		// BaMMmotif -h
+		// BaMMmotif --help
+		printHelp();
+	}
+
 	seq_format format = FASTA;
 	for(long i = 2; i < argc; i++){
 		//if(strcmp(argv[i], "--aa") == 0){
@@ -471,12 +480,12 @@ Global::Global(int argc, char *argv[]){
 	}
 
 	struct stat sts;
-	if (((stat (argv[2], &sts)) == -1) || S_ISDIR(sts.st_mode)){
+	if( ( ( stat( argv[2], &sts ) ) == -1 ) || S_ISDIR( sts.st_mode ) ){
 		fprintf(stderr, "\n !!! SEQFILE %s does not exist !!! \n\n", argv[2]);
 		exit(-1);
 	}
-	if (negFile != NULL && (((stat (negFile, &sts)) == -1) || S_ISDIR(sts.st_mode))){
-		fprintf(stderr, "\n !!! NEGFILE %s does not exist !!! \n\n", negFile);
+	if( negFile != NULL && ( ( ( stat( negFile, &sts ) ) == -1 ) || S_ISDIR( sts.st_mode ) ) ){
+		fprintf( stderr, "Background sequence file %s does not exist\n", negFile );
 		exit(-1);
 	}
 
@@ -496,7 +505,7 @@ Global::Global(int argc, char *argv[]){
 	startRegion = 1;
 	endRegion = Global::posSet->max_leng;
 
-	if(!readCommandLineOptions(argc, argv))	printHelpOutput();
+	if(!readCommandLineOptions(argc, argv))	printHelp();
 			if(negFile != NULL){
 			negSet = readSeqSet(negFile,A,format, INT_MAX);
 		}
@@ -523,9 +532,9 @@ Global::Global(int argc, char *argv[]){
 
 /* TODO
  * improve readability in non-EM parts */
-void Global::printHelpOutput(){
+void Global::printHelp(){
 
-	bool developerHelp = true; // display developer-specific options
+	bool developerHelp = false; // display developer-specific options
 
 	printf( "BaMM!motif version 1.0\n" );
 	printf( "\n" );
@@ -549,7 +558,7 @@ void Global::printHelpOutput(){
 			"          complements). This option is e.g. recommended when using sequences\n"
 			"          derived from ChIP-seq experiments.\n\n" );
 	if( developerHelp ){
-		printf( "      --maxPosSequences <INTEGER>\n"
+		printf( "      --maxPosSequences <INTEGER> (*)\n"
 				"          Maximum number of positive sequences to read in. The default is to\n"
 				"          read in all sequences.\n\n");
 	}
@@ -665,21 +674,21 @@ void Global::printHelpOutput(){
 	printf( "      --XX-jumpStartPWMStage <FILEPATH>\n"
 			"          Jump-start PWM stage reading in a PWM from file.\n\n" );
 	if( developerHelp ){
-		printf( "      --XX-minMatchPositions <INTEGER>\n"
+		printf( "      --XX-minMatchPositions <INTEGER> (*)\n"
 				"          Minimum number of non-wildcard motif positions. The default is 4.\n\n" );
-		printf( "      --XX-maxMotifsPerSequence\n"
+		printf( "      --XX-maxMotifsPerSequence <INTEGER> (*)\n"
 				"          Maximum number of motif occurrences per sequence.\n\n");
-		printf( "      --XX-track <STRING>\n"
+		printf( "      --XX-track <STRING> (*)\n"
 				"          Track extensions and refinements of IUPAC pattern string.\n\n");
-		printf( "      --XX-effectiveIUPACStates <INTEGER>\n"
+		printf( "      --XX-effectiveIUPACStates <INTEGER> (*)\n"
 				"          Effective number of different states in a single IUPAC extension. The\n"
 				"          default is 6.\n\n");
-		printf( "      --XX-effectivePWMStates <INTEGER>\n"
+		printf( "      --XX-effectivePWMStates <INTEGER> (*)\n"
 				"          Effective number of different states in a single PWM column. The\n"
 				"          default is 10.\n\n");
-		printf( "      --XX-gapOpening <NUMBER>\n"
+		printf( "      --XX-gapOpening <NUMBER> (*)\n"
 				"          Bit penalty for each gap opening.\n\n");
-		printf( "      --XX-gapExtension <INTEGER>\n"
+		printf( "      --XX-gapExtension <INTEGER> (*)\n"
 				"          Bit penalty for each gap extension.\n\n");
 	}
 	printf( "      --XX-localization\n"
@@ -693,21 +702,19 @@ void Global::printHelpOutput(){
 			"          site) and the last positive sequence nucleotide. Corrects motif\n"
 			"          positions in result plots. The default is 0.\n\n");
 	if( developerHelp ){
-		printf( "      --XX-startPosEnrichedReg <INTEGER>\n"
+		printf( "      --XX-startPosEnrichedReg <INTEGER> (*)\n"
 				"          Expected start position of region enriched for motif occurrences,\n"
 				"          relative to anchor position (see --localization).\n\n");
-		printf( "      --XX-endPosEnrichedReg <INTEGER>\n"
+		printf( "      --XX-endPosEnrichedReg <INTEGER> (*)\n"
 				"          Expected end position of region enriched for motif occurrences,\n"
 				"          relative to anchor position (see --localization).\n\n");
-	}
-	if( developerHelp ){
-		printf( "      --XX-format FASTA|MFASTA\n"
+		printf( "      --XX-format FASTA|MFASTA (*)\n"
 				"          Use conservation information from multiple sequence alignments in\n"
 				"          FASTA format or provide positive sequences in FASTA format (default).\n\n");
-		printf( "      --XX-maxMFASTASequences <INTEGER>\n"
+		printf( "      --XX-maxMFASTASequences <INTEGER> (*)\n"
 				"          Limit the number of sequences to use from multiple sequence\n"
 				"          alignments. By default, all sequences are used.\n\n" );
-		printf( "      --XX-debug\n"
+		printf( "      --XX-debug (*)\n"
 				"          Printout evolving PWMs during the PWM stage.\n\n");
 	}
 	printf( "      --XX-batch\n"
@@ -802,7 +809,7 @@ void Global::printHelpOutput(){
 		printf( "      (*) Developer options\n\n" );
 	}
 
-	exit(-1);
+	exit( -1 );
 }
 
 
