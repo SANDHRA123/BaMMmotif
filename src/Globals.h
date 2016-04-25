@@ -176,6 +176,7 @@ public:
 	static int 			downstream;		/** distance between the alignment point and the end of the input sequences **/
 
 	static char* 		outputDirectory; /** output Directory **/
+	static char* 		tmpDirectory;		// temporary XXmotif directory
 	static char*		name;			/** input file name **/
 	static char*		shortFileName;	/** input file name without path and .**/
 	static char*		negFile;		/** negative input file name **/
@@ -545,6 +546,7 @@ public:
 
 	static char* String(const char *s);
 	static void createDirectory(const char *s);
+	static void deleteDirectory( const char *s );
 private:
 	bool readCommandLineOptions(int argc, char *argv[]);
 	void printHelp();
@@ -554,17 +556,29 @@ inline char* Global::String(const char *s){
   return strdup(s);
 }
 
-inline void Global::createDirectory(const char *s){
+inline void Global::createDirectory( const char *s ){
 	struct stat St;
 	if( stat( s, &St ) != 0 ){
-		fprintf(stderr, "output directory does not exist\n");
-		char* command = (char*)calloc(1024, sizeof(char));
-		sprintf(command, "mkdir %s", s);
-		if(system(command) != 0){
-			fprintf(stderr, "Directory %s could not be created\n", s);
-			exit(-1);
+		char* command = ( char* )calloc( 1024, sizeof( char ) );
+		sprintf( command, "mkdir %s", s );
+		if( system( command ) != 0 ){
+			fprintf( stderr, "Error: Output directory %s could not be created\n", s );
+			exit( -1 );
 		}
-		free(command);
+		free( command );
+	}
+}
+
+inline void Global::deleteDirectory( const char *s ){
+	struct stat St;
+	if( stat( s, &St ) == 0 ){
+		char* command = ( char* )calloc( 1024, sizeof( char ) );
+		sprintf( command, "rm -rf %s", s );
+		if( system( command ) != 0 ){
+			fprintf( stderr, "Error: Temporary directory %s could not be deleted\n", s );
+			exit( -1 );
+		}
+		free( command );
 	}
 }
 
