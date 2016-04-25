@@ -2,31 +2,28 @@
 #include <limits.h>
 #include <math.h>
 
-#include "refinementPhase/Motif.h"
-#include "backgroundDistribution.h"
 #include "getopt_pp/getopt_pp.h"
-#include "Globals.h"
-#include "NullModel.h"
-#include "em/hoUtils.h"
 
-#include "em/hoNullModel.h" /* Expectation Maximization(EM)-specific */
+#include "backgroundDistribution.h"
+#include "Globals.h"
+#include "NullModel.h" // homogeneous background BMM used in XXmotif
+#include "em/hoUtils.h"
+#include "em/hoNullModel.h" // homogeneous background BMM used in BaMM!motif
+#include "refinementPhase/Motif.h"
 
 using GetOpt::GetOpt_pp;
 using GetOpt::GlobalOption;
 using GetOpt::Option;
 using GetOpt::OptionPresent;
 
-/* TODO
- * improve sequence & readability */
-
 a_type 		Global::A = NULL;
-ss_type		Global::posSet = NULL;			/** positive sequence set **/
-ss_type 	Global::negSet = NULL;			/** negative sequence set **/
+ss_type		Global::posSet = NULL;					// positive sequences
+ss_type 	Global::negSet = NULL;					// negative/background sequences
 bool		Global::usePositionalProbs = false;
 bool		Global::positionalProbsRanking = false;
 
-int 		Global::GAPS = 0;				/** number of gap combinations allowed in the start motifs */
-merge_type	Global::mergeMode; /* default is set below for proteins/dna */
+int 		Global::GAPS = 0;						// number of gap combinations in start motifs to consider
+merge_type	Global::mergeMode;
 double 		Global::gapOpening = 1;
 double 		Global::gapExtension = 1;
 int 		Global::maxMultipleSequences = 100;
@@ -43,44 +40,45 @@ int			Global::maxSeqCount = 1000;
 bool 		Global::useAliFree = false;
 bool 		Global::useRankPvalues = false;
 
-bool   		Global::multipleOccurrence = false;	/** multiple occurrences should be found in one sequence **/
-bool   		Global::oneOccurrence = false;	/** multiple occurrences should be found in one sequence **/
-bool		Global::zeroOrOneOccurrence = false;
-bool		Global::revcomp= false;			/** search on reverse complement of sequences **/
+bool   		Global::multipleOccurrence = false;		// multiple occurrence per sequence
+bool   		Global::oneOccurrence = false;			// one occurrence per sequence
+bool		Global::zeroOrOneOccurrence = false;	// zero or one occurrence per sequence
+bool		Global::revcomp= false;					// search on reverse complements of positive sequences too
 bool 		Global::repeatFiltering = false;
 bool 		Global::lowComplexityFilter = false;
 bool		Global::noRefinementPhase = false;
 
-char* 		Global::startMotif = NULL;		/** start motif for motif discovery **/
-char*		Global::profFile = NULL;		/** file with a the start profile for motif discovery **/
-int			Global::startRegion = 0;		/** start of enriched region **/
-int			Global::endRegion = 1;			/** end of enriched region **/
-motif_type	Global::type = ALL;			/* type of motif: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM*/
-seq_format	Global::seqFormat = FASTA;      /* format of input sequences: FASTA, CLUSTALW */
+char* 		Global::startMotif = NULL;		// start motif (IUPAC pattern string) for motif discovery
+char*		Global::profFile = NULL;		// file with start profile (PWM) for motif discovery **/
+int			Global::startRegion = 0;		// expected start position of region enriched for motif occurrences
+int			Global::endRegion = 1;			// expected start position of region enriched for motif occurrences
+motif_type	Global::type = ALL;				// seed pattern types: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM
+seq_format	Global::seqFormat = FASTA;		// format of positive and negative/background sequence sets: FASTA, CLUSTALW
 
 float***	Global::conservationProbs = NULL;
 float***	Global::alignmentFreeProbs = NULL;
 bool        Global::removeHomology = false;
 
-double* 	Global::posBg_log = NULL;		/* logarithm of distribution of positive set **/
-double* 	Global::posBg = NULL;			/* background of positive set **/
-double* 	Global::negBg_log = NULL; 		/* logarithm of distribution of negative set **/
-double*		Global::negBg = NULL;			/* background of negative set **/
+double* 	Global::posBg_log = NULL;		// logarithm of base frequencies in positive sequences
+double* 	Global::posBg = NULL;			// base frequencies in positive sequences
+double* 	Global::negBg_log = NULL; 		// logarithm of base frequencies in negative/background sequences
+double*		Global::negBg = NULL;			// base frequencies in negative/background sequences
 
-double		Global::pseudo = 0.1;			/** pseudocounts for pwm for finding new instances**/
+double		Global::pseudo = 0.1;			// fraction of PWM pseudocounts
 double		Global::plusFrac = 0;
-int			Global::neff_pwm;				/** effective number of different bases in one pwm column **/
-int 		Global::neff_discrete;			/** effective number of different bases before pwm phase **/
+int			Global::neff_pwm;				// effective number of different bases in single PWM columns
+int 		Global::neff_discrete;			// effective number of different bases in single IUPAC extensions
 
-int			Global::downstream = 0;			/** distance between the alignment point and the end of the input sequences **/
+int			Global::downstream = 0;			// distance between the anchor position and the end of positive sequences
 
-char* 		Global::outputDirectory = NULL; /** output Directory **/
-char*		Global::name = NULL;			/** input file name **/
-char*		Global::shortFileName = NULL;	/** input file name without path and .**/
-char*		Global::negFile = NULL;			/** negative input file name **/
-char* 		Global::benchmarkFolder = NULL; /** folder in which the benchmark results are stored **/
+char* 		Global::outputDirectory = NULL; // output directory for the results
+char* 		Global::tmpDirectory = NULL;	// temporary XXmotif directory
+char*		Global::name = NULL;			// positive sequence file name
+char*		Global::shortFileName = NULL;	// positive sequence file basename
+char*		Global::negFile = NULL;			// negative/background sequence file name
+char* 		Global::benchmarkFolder = NULL; // directory for the benchmark results
 char*		Global::pwmFolder = NULL;
-int			Global::maxMotifLevel = 3;		/** max number of extensions tried per level */
+int			Global::maxMotifLevel = 3;		// maximum number of extensions per level to consider
 double		Global::minCoverage;
 
 int			Global::minMatchPositions;
@@ -91,7 +89,7 @@ bool		Global::maximizeMotifLength = true;
 StateType 	Global::type_of_states;
 
 
-/* cs blast */
+// cs blast options
 int			Global::cswlen;
 std::string	Global::csprofiles;
 int 		Global::csbest;
@@ -118,20 +116,11 @@ std::string Global::nnetFilename;
 bool 		Global::DEBUG = false;
 std::string Global::argv0;
 
-/* background model order */
-int Global::order = 2;
-/* background model pseudo-counts factor */
-float Global::pseudocountsFactor = 10.0f;
-/* background model counts offset */
-float Global::countsOffset = 0.0f;
+// homogeneous background BMM options used in XXmotif
+int Global::order = 2;						// model order
+float Global::pseudocountsFactor = 10.0f;	// prior strength
+float Global::countsOffset = 0.0f;			// counts offset
 
-/*
- * Expectiation Maximization (EM) parameters
- * */
-
-/*
- * higher-order modeling and EM mode
- */
 bool Global::em = true;
 
 /*
@@ -453,90 +442,126 @@ Global::Global( int argc, char *argv[] ){
 	}
 
 	seq_format format = FASTA;
-	for(long i = 2; i < argc; i++){
-		//if(strcmp(argv[i], "--aa") == 0){
-		//	A = MkAlpha("XACDEFGHIKLMNPQRSTVWY$");
-		//	aa = true;
-		//}else
-		if(strcmp(argv[i], "--terminus-mode") == 0){
-			if(i+1 < argc && strcmp(argv[i+1], "NONE") == 0) termMode = NONE;
-			else if(i+1 < argc && strcmp(argv[i+1], "POS") == 0) termMode = POS;
-			else if(i+1 < argc && strcmp(argv[i+1], "NEG") == 0) termMode = NEG;
-			else if(i+1 < argc && strcmp(argv[i+1], "BOTH") == 0) termMode = BOTH;
-			else { fprintf(stderr, "Illegal terminus mode\n"); exit(1); }
-		}else if(strcmp(argv[i], "--maxPosSetSize") == 0){
-			if(i+1 == argc){ fprintf(stderr, "\n\nERROR: no value given for option --maxPosSetSize\n\n"); exit(-1); }
-			maxPosSetSize = atoi(argv[i+1]);
-		}else if(strcmp(argv[i], "--format") == 0){
-			if(i+1 == argc){ fprintf(stderr, "\n\nERROR: no value given for option --format\n\n"); exit(-1); }
-			if(i+1 < argc && strcmp(argv[i+1], "CLUSTALW") == 0) format = CLUSTALW;
-			if(i+1 < argc && strcmp(argv[i+1], "MFASTA") == 0) format = MFASTA;
-			if(i+1 < argc && strcmp(argv[i+1], "CUSTOM") == 0) format = CUSTOM;
-		}else if(strcmp(argv[i], "--negSequenceSet") == 0){
+	for( long i = 2; i < argc; i++ ){
+//		if( strcmp( argv[i], "--aa" ) == 0 ){
+//			A = MkAlpha( "XACDEFGHIKLMNPQRSTVWY$" );
+//			aa = true;
+//		} else{
+		if( strcmp( argv[i], "--terminus-mode" ) == 0 ){
+			if( i+1 < argc && strcmp( argv[i+1], "NONE" ) == 0 ){
+				termMode = NONE;
+			} else if( i+1 < argc && strcmp( argv[i+1], "POS" ) == 0){
+				termMode = POS;
+			} else if( i+1 < argc && strcmp( argv[i+1], "NEG" ) == 0){
+				termMode = NEG;
+			} else if( i+1 < argc && strcmp( argv[i+1], "BOTH" ) == 0){
+				termMode = BOTH;
+			} else{
+				fprintf( stderr, "Error: Illegal terminus mode\n" );
+				exit( -1 );
+			}
+		} else if( strcmp( argv[i], "--maxPosSequences" ) == 0 ){
+			if( i+1 == argc ){
+				fprintf( stderr, "Error: Please provide a value for option --maxPosSequences\n" );
+				exit( -1 );
+			}
+			maxPosSetSize = atoi( argv[i+1] );
+		} else if( strcmp(argv[i], "--XX-format" ) == 0 ){
+			if( i+1 == argc ){
+				fprintf( stderr, "Error: Please provide a value for option --XX-format\n" );
+				exit( -1 );
+			}
+			if( i+1 < argc && strcmp( argv[i+1], "CLUSTALW" ) == 0 ){
+				format = CLUSTALW;
+			}
+			if( i+1 < argc && strcmp( argv[i+1], "MFASTA" ) == 0 ){
+				format = MFASTA;
+			}
+			if( i+1 < argc && strcmp( argv[i+1], "CUSTOM" ) == 0 ){
+				format = CUSTOM;
+			}
+		} else if( strcmp( argv[i], "--negSequenceSet" ) == 0 ){
 			negFile = argv[i+1];
-		}else if(strcmp(argv[i], "--lcf") == 0){
+		} else if( strcmp( argv[i], "--lcf" ) == 0 ){
 			lowComplexityFilter = true;
 		}
 	}
 
 	struct stat sts;
 	if( ( ( stat( argv[2], &sts ) ) == -1 ) || S_ISDIR( sts.st_mode ) ){
-		fprintf(stderr, "\n !!! SEQFILE %s does not exist !!! \n\n", argv[2]);
-		exit(-1);
+		fprintf( stderr, "Error: Positive sequence file %s not found\n", argv[2] );
+		exit( -1 );
 	}
 	if( negFile != NULL && ( ( ( stat( negFile, &sts ) ) == -1 ) || S_ISDIR( sts.st_mode ) ) ){
-		fprintf( stderr, "Background sequence file %s does not exist\n", negFile );
-		exit(-1);
+		fprintf( stderr, "Error: Negative/background sequence file %s not found\n", negFile );
+		exit( -1 );
 	}
 
-	//if (!aa) termMode=NONE;
-	termMode=NONE;
+	termMode = NONE;
 
-	if(A==NULL) A = MkAlpha("NACGT");
+	if( A == NULL ){
+		A = MkAlpha( "NACGT" );
+	}
 
-	posSet = readSeqSet(argv[2], A, format, maxPosSetSize, termMode==BOTH || termMode==POS);
-	calculateSequenceFeatures(posSet, A);
+	// read in positive sequences
+	posSet = readSeqSet( argv[2], A, format, maxPosSetSize, termMode==BOTH || termMode == POS );
+	if( posSet->min_leng != posSet->max_leng ){
+		fprintf( stderr, "Error: Please provide positive sequences of equal length\n" );
+		exit( -1 );
+	}
+	calculateSequenceFeatures( posSet, A );
 
-    posBg_log = (double*)calloc(nAlpha(A)+1, sizeof(double));
-    posBg     = (double*)calloc(nAlpha(A)+1, sizeof(double));
-    negBg_log = (double*)calloc(nAlpha(A)+1, sizeof(double));
-    negBg 	  = (double*)calloc(nAlpha(A)+1, sizeof(double));
+    posBg_log = ( double* )calloc( nAlpha(A)+1, sizeof( double ) );
+    posBg     = ( double* )calloc( nAlpha(A)+1, sizeof( double ) );
+    negBg_log = ( double* )calloc( nAlpha(A)+1, sizeof( double ) );
+    negBg 	  = ( double* )calloc( nAlpha(A)+1, sizeof( double ) );
 
 	startRegion = 1;
 	endRegion = Global::posSet->max_leng;
 
-	if(!readCommandLineOptions(argc, argv))	printHelp();
-			if(negFile != NULL){
-			negSet = readSeqSet(negFile,A,format, INT_MAX);
+	if( !( readCommandLineOptions( argc, argv ) ) ){
+		printHelp();
+	}
+	if( negFile != NULL ){
+		negSet = readSeqSet( negFile, A, format, INT_MAX );
+	}
+	if( negSet != NULL ){
+		if( repeatFiltering ){
+			filter_repeats( negSet, A );
 		}
-		if(negSet != NULL ){
-			if(repeatFiltering){ filter_repeats(negSet, A); }
-			if(lowComplexityFilter){ cerr << "negSet: "; filter_lowComplexity(negSet, A); }
-			if(revcomp){ createRevcomp(negSet, A); }
-			fillGapsInMultipleAlignment(negSet, A);
-			filterMaxMultipleSequences(negSet, maxMultipleSequences);
-			calculateSequenceFeatures(negSet, A);
+		if( lowComplexityFilter ){
+			cerr << "Negative sequence set: ";
+			filter_lowComplexity( negSet, A );
 		}
+		if( revcomp ){
+			createRevcomp( negSet, A );
+		}
+		fillGapsInMultipleAlignment( negSet, A );
+		filterMaxMultipleSequences( negSet, maxMultipleSequences );
+		calculateSequenceFeatures( negSet, A );
+	}
 
-		if(repeatFiltering){ filter_repeats(posSet, A); }
-		if(lowComplexityFilter){ cerr << "posSet: "; filter_lowComplexity(posSet, A); }
-		if(revcomp){ createRevcomp(posSet, A); }
-		fillGapsInMultipleAlignment(posSet, A);
-		filterMaxMultipleSequences(posSet, maxMultipleSequences);
-
+	if( repeatFiltering ){
+		filter_repeats( posSet, A );
+	}
+	if( lowComplexityFilter ){
+		cerr << "Positive sequence set: ";
+		filter_lowComplexity( posSet, A );
+	}
+	if( revcomp ){
+		createRevcomp( posSet, A );
+	}
+	fillGapsInMultipleAlignment( posSet, A );
+	filterMaxMultipleSequences( posSet, maxMultipleSequences );
 
 	checkSequenceSet(); // do some tests whether the negative set is a good choice
-	setBackgroundDistribution(); // get trinuc distribution and conditional trinuc distribution of the background set
+	setBackgroundDistribution(); // calculate trimer probabilities and conditional probabilities from negative/background sequences
 }
 
-
-/* TODO
- * improve readability in non-EM parts */
 void Global::printHelp(){
 
-	bool developerHelp = false; // display developer-specific options
+	bool developerHelp = false; // show developer-specific options
 
-	printf( "BaMM!motif version 1.0\n" );
 	printf( "\n" );
 	printf( "SYNOPSIS\n" );
 	printf( "      BaMMmotif DIRPATH FILEPATH [OPTIONS]\n\n" );
@@ -681,10 +706,10 @@ void Global::printHelp(){
 		printf( "      --XX-track <STRING> (*)\n"
 				"          Track extensions and refinements of IUPAC pattern string.\n\n");
 		printf( "      --XX-effectiveIUPACStates <INTEGER> (*)\n"
-				"          Effective number of different states in a single IUPAC extension. The\n"
+				"          Effective number of different states in single IUPAC extensions. The\n"
 				"          default is 6.\n\n");
 		printf( "      --XX-effectivePWMStates <INTEGER> (*)\n"
-				"          Effective number of different states in a single PWM column. The\n"
+				"          Effective number of different states in single PWM columns. The\n"
 				"          default is 10.\n\n");
 		printf( "      --XX-gapOpening <NUMBER> (*)\n"
 				"          Bit penalty for each gap opening.\n\n");
@@ -812,39 +837,36 @@ void Global::printHelp(){
 	exit( -1 );
 }
 
-
 bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
-	/* 1. process flags & option-preceding arguments:
+	/*
+	 * 1. process flags & option-preceding arguments
 	 *    * flags
-	 *      * user flags
-	 *        * --aa- and/or --em-specific
-	 *      * developer flags
-	 *        * --aa- and/or --em-specific
 	 *    * option-preceding arguments
-	 *      * user arguments
-	 *        * --aa- and/or --em-specific
-	 *      * developer arguments
-	 *        * --aa- and/or --em-specific
-	 * 2. process arguments without preceding option:
+	 * 2. process arguments without preceding option
 	 *    * output directory
 	 *    * input sequence file
 	 * 3. process settings depending on arguments (in 2nd)
 	 *
-	 * order necessary to accurately use GlobalOption( args ) */
+	 * order necessary to accurately use GlobalOption()
+	 */
 
 	GetOpt_pp ops( argc, argv );
 
-	/* mode setting */
+	/*
+	 *  mode setting
+	 */
 
 	if( ops >> OptionPresent( 'h', "help" ) ){
 		return false;
 	}
 	ops >> OptionPresent( "XX-debug", DEBUG );
-	//ops >> OptionPresent( "aa", aa );
+//	ops >> OptionPresent( "aa", aa );
 	ops >> OptionPresent( "evaluatePWMs", evaluatePWMs );
 
-	/* mode-dependent default setting */
+	/*
+	 * mode-specific default setting
+	 */
 
 	order = ( negFile == NULL ) ? 2 : 8; // background model order
 	mergeMode = LOW;
@@ -853,13 +875,9 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	/*
 	 * process flags
-	 * * user
 	 */
 
 	ops >> OptionPresent( "XX-batch", batch_mode );
-	if( batch_mode ){
-		printf( "Running in batch mode: no progress bars.\n" );
-	}
 
 	if( ops >> OptionPresent( "XX-noLengthOptimPWMs" ) ){
 		maximizeMotifLength = false;
@@ -868,39 +886,26 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	ops >> OptionPresent( "XX-MOPS", multipleOccurrence );
 	ops >> OptionPresent( "XX-OOPS", oneOccurrence );
 	ops >> OptionPresent( "XX-ZOOPS", zeroOrOneOccurrence );
-	if( ( oneOccurrence && multipleOccurrence) ||
-		  ( oneOccurrence && zeroOrOneOccurrence ) ||
-		  ( zeroOrOneOccurrence && multipleOccurrence ) ){
-		fprintf( stderr, "One-occurrence-per-sequence model (--oops) and/or "
-				"multiple-occurrence-per-sequence model (--mops) and/or "
-				"zero-or-one-occurrence-per-sequence model (--zoops) cannot be "
-				"used simultaneously.\n" );
-		exit(-1);
+	if( ( oneOccurrence && multipleOccurrence) || ( oneOccurrence && zeroOrOneOccurrence ) || ( zeroOrOneOccurrence && multipleOccurrence ) ){
+		fprintf( stderr, "Error: Please choose at most one of --zoops, --mops, and --oops\n" );
+		exit( -1 );
 	}
-	if( !( oneOccurrence ) && !( zeroOrOneOccurrence )
-		&& !( multipleOccurrence ) ){
+	if( !( oneOccurrence ) && !( zeroOrOneOccurrence ) && !( multipleOccurrence ) ){
 		zeroOrOneOccurrence = true;
 	}
 
 	ops >> OptionPresent( "reverseComp", revcomp );
 
 	ops >> OptionPresent( "XX-localization", usePositionalProbs );
-	if( usePositionalProbs &&
-		( Global::posSet->max_leng != Global::posSet->min_leng ) ){
-		fprintf( stderr, "Localization information is only applicable for input"
-				" sequences having all the same length.\n");
+	if( usePositionalProbs && ( Global::posSet->max_leng != Global::posSet->min_leng ) ){
+		fprintf( stderr, "Error: Option --localization can only be applied for positive sequences of equal length\n" );
 		exit( -1 );
 	}
 	if( usePositionalProbs ){
 		ops >> OptionPresent( "XX-localizationRanking", positionalProbsRanking );
 	}
 
-	/*
-	 * process flags: user
-	 * --em-specific
-	 */
-
-	if( em ){
+	if( em ){ // default
 		ops >> OptionPresent( "msq", msq );
 		if( ops >> OptionPresent( "nonBayesian" ) ){
 			interpolate = false;
@@ -913,8 +918,6 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		ops >> OptionPresent( "learnAlpha", learnHyperParameter );
 		ops >> OptionPresent( "posAlpha", positionSpecificAlphas );
 		ops >> OptionPresent( "debugAlpha", debugAlphalearning );
-
-
 	}
 
 	if( em || evaluatePWMs ){
@@ -923,21 +926,12 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		ops >> OptionPresent( "calculateLogScores", logProbs );
 	}
 
-	/*
-	 * process flags: developer
-	 */
-
 	ops >> OptionPresent( "ali-free", useAliFree );
 	ops >> OptionPresent( "extra-homology-filter", removeHomology );
 	ops >> OptionPresent( "filtering", repeatFiltering );
 	ops >> OptionPresent( "lcf", lowComplexityFilter );
 	ops >> OptionPresent( "noRefinementPhase", noRefinementPhase );
 	ops >> OptionPresent( "ranks", useRankPvalues );
-
-	/*
-	 * process flags: developer
-	 * --em-specific
-	 */
 
 	if( em ){
 		ops >> OptionPresent( "saveEMLikelihoods",
@@ -946,10 +940,8 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 							   saveExpectationMaximizationModels );
 	}
 
-
 	/*
 	 * process option-preceding arguments
-	 * * user
 	 */
 
 	ops >> Option( "negSequenceSet", negFile );
@@ -985,7 +977,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	  trackedMotifs.insert( tr );
 	}
 
-	ops >> Option( "format", seqFormat );
+	ops >> Option( "XX-format", seqFormat );
 	if( seqFormat == NO_VALID_SEQ_FORMAT ){
 		return false;
 	}
@@ -994,26 +986,20 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	ops >> Option( "XX-downstreamPositions", downstream );
 
-	ops >> Option( 'm', "XX-jumpStartPatternStage", startMotif );
-	ops >> Option( 'p', "XX-jumpStartPWMStage", profFile );
+	ops >> Option( "XX-jumpStartPatternStage", startMotif );
+	ops >> Option( "XX-jumpStartPWMStage", profFile );
 
  	int offset = posSet->max_leng - downstream;
-	if( ops >> Option( "startRegion", startRegion ) ){
+	if( ops >> Option( "XX-startPosEnrichedReg", startRegion ) ){
 		startRegion += offset;
 	} else{
 		startRegion = 0;
 	}
-	if( ops >> Option( "endRegion", endRegion ) ){
+	if( ops >> Option( "XX-endPosEnrichedReg", endRegion ) ){
 		Global::endRegion += offset;
 	} else{
 		endRegion = posSet->max_leng;
 	}
-
-	/*
-	 * process option-preceding arguments
-	 * * user
-	 *   * --em-specific
-	 */
 
 	if( em ){
 
@@ -1024,42 +1010,45 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				ops >> Option( "bindingSiteLength", bindingSiteLength );
 			} else{
 
-				/* determine binding site lengths */
+				/*
+				 * determine the length of binding site sequences
+				 */
 
 				FILE* fp;
 				if( ( fp = fopen( bindingSiteFile, "r" ) ) == NULL ){
-			        fprintf( stderr, "Cannot open bindingSiteFile %s\n",
-			        		 bindingSiteFile );
-			        exit(-1);
+			        fprintf( stderr, "Error: Cannot open binding sites file %s\n", bindingSiteFile );
+			        exit( -1 );
 				}
 
 				int c;
-				while( ( c=fgetc( fp ) ) == '\n' ){
-					; // skip first blank lines
+				while( ( c=fgetc( fp ) ) != EOF && ( c == '\n' || c == '\r' ) ){
+					; // skip leading blank lines
+				}
+				if( c == EOF ){
+					fprintf( stderr, "Error: No binding site sequences in %s\n", bindingSiteFile );
+					exit( -1 );
 				}
 
-				int l = 1; // character counter per line
-				int L = -1; // character number of 1st line
+				int L = -1;			// length of first binding site sequence
+				int l = 1;			// length or current binding site sequence
+				int ncounter = 0;	// counter for \n and \r
 
-				int ncounter = 0; // \n-counter
 				while( ( c=fgetc( fp ) ) != EOF ){
-					if( c == '\n' ){
+					if( c == '\n' || c == '\r' ){
 						if( ncounter > 0 ){
-							// skip blank lines
 							continue;
 						} else if( L == -1 ){
-							// remember the 1st line's character number
+							// remember the length of the first binding site sequence
 							L = l;
 						} else if ( L != l ){
-							fprintf( stderr, "Binding site sequence lengths "
-									 "must not differ\n" );
+							fprintf( stderr, "Error: Please provide binding site sequences of equal length\n" );
 							exit( -1 );
 						}
-						l = 0; // reset character counter
-						++ncounter;
-					} else{ // next character
-						++l;
-						ncounter = 0; // reset \n-counter
+						l = 0; // reset for next binding site sequence
+						ncounter++;
+					} else{
+						l++;
+						ncounter = 0; // reset counter for \n and \r
 					}
 				}
 
@@ -1072,7 +1061,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				addColumns.clear();
 				ops >> Option( "extend", addColumns );
 				if( addColumns.size() < 1 || addColumns.size() > 2 ){
-					fprintf( stderr, "Option --extend format error\n" );
+					fprintf( stderr, "Error: Wrong format of option --extend\n" );
 					exit( -1 );
 				}
 				if( addColumns.size() == 1 ){
@@ -1083,7 +1072,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			}
 
 			if( bindingSiteLength > posSet->min_leng ){
-				fprintf( stderr, "Binding site sequence lengths exeed positive "
+				fprintf( stderr, "Binding site sequence lengths exceed positive "
 						"sequence lengths\n" );
 				exit( -1 );
 			}
@@ -1401,26 +1390,16 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	} else if( evaluatePWMs ){
 
-		// number of one or more models in the ranking to pursue
 		if( ops >> OptionPresent( "rankPWMs" ) ){
 			ops >> Option( "rankPWMs", nrModels );
 			std::sort( nrModels.begin(), nrModels.end() );
 		}
-		// min. number of models to pursue
 		ops >> Option( "minPWMs", minModels );
-		// max. number of models to pursue
 		ops >> Option( "maxPWMs", maxModels );
-		// max. p-value of models
 		ops >> Option( "maxPValue", pValueThreshold );
 		pValueThreshold = log( pValueThreshold );
-		// min. percentage of sequences containing a binding site instance
 		ops >> Option( "minOccurrence", minOccurrence );
 	}
-
-	/*
-	 * process option-preceding arguments
-	 * * developer
-	 */
 
 	ops >> Option( "benchmarkFolder", benchmarkFolder );
 	ops >> Option( "counts-offset", countsOffset );
@@ -1443,8 +1422,6 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	ops >> Option( "XX-maxMotifsPerSequence", maxMotifsPerSequence );
 	ops >> Option( "XX-minMatchPositions", minMatchPositions );
 
-	/* neffs can be set identically (--neff) or seperately for discrete
-	 * (--neff-states) and PWM (--neff-pwm) phase */
 	int n_eff = -1;
 	neff_discrete = 6;
 	neff_pwm = 10;
@@ -1462,12 +1439,6 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	ops >> Option( "XX-A", pseudocountsFactor );
 	ops >> Option( "termFreqScale", dollarScaleFactor );
 
-	/*
-	 * process option-preceding arguments
-	 * * developer
-	 *   * --em-specific
-	 */
-
 	ops >> Option( "maxEMIterations", maxEMIterations );
 
 
@@ -1476,8 +1447,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	ops >> Option( "csprofiles", csprofiles );
 	if( csbest != 0 ){
 		if( csprofiles.length() == 0 ){
-			fprintf( stderr, "Missing cs profile output file (--csprofiles).\n"
-					);
+			fprintf( stderr, "Error: CS profile output file is missing (use --csprofiles).\n" );
 			exit( -1 );
 		}
 	}
@@ -1494,16 +1464,8 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	}
 
 	if( minCoverage > posSet->nent ){
-		fprintf( stderr, "Minimum coverage > number of sequences. Does this "
-				"makes sense?\n" );
-		exit( -1 );
+		minCoverage = posSet->nent;
 	}
-
-	/*
-	 * process option-preceding arguments
-	 * * developer
-	 *   * --em-specific
-	 */
 
 	if( em ){
 		ops >> Option( 'e', "epsilon", epsilon );
@@ -1512,9 +1474,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	if( em || evaluatePWMs ){
 		if( ops >> Option( "scoreTestSequenceSet", testSequenceFile ) ){
 			for( unsigned int i=0; i < testSequenceFile.size(); i++ ){
-				testSet.push_back( readSeqSet( const_cast<char*>(
-						           testSequenceFile.at(i).c_str() ), Global::A,
-						           FASTA, INT_MAX ) );
+				testSet.push_back( readSeqSet( const_cast<char*>( testSequenceFile.at(i).c_str() ), Global::A, FASTA, INT_MAX ) );
 				if( revcomp ){
 					createRevcomp( testSet.back(), A );
 				}
@@ -1531,24 +1491,20 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	std::vector<std::string> args;
 	ops >> GlobalOption( args );
 	if( !( args.size() == 2 ) ){
-		for( unsigned int i=0; i< args.size(); i++ ){
-			printf( "%s\n", args.at(i).c_str() );
-		}
+//		for( unsigned int i = 0; i < args.size(); i++ ){
+//			printf( "%s\n", args.at(i).c_str() );
+//		}
 		return false;
 	}
 
-	/* create output directory */
 	outputDirectory = String( args[0].c_str() );
 	createDirectory( outputDirectory );
 	pwmFolder = String( outputDirectory );
 
-	/* create temporary directory */
-	char* tmpFolder = ( char* )calloc( 1024, sizeof( char ) );
-	sprintf( tmpFolder, "%s/tmp", outputDirectory );
-	createDirectory( tmpFolder );
-	free( tmpFolder );
+	tmpDirectory = ( char* )calloc( 1024, sizeof( char ) );
+	sprintf( tmpDirectory, "%s/tmp", outputDirectory );
+	createDirectory( tmpDirectory );
 
-	/* extract file name from sequence file */
 	int i = 0, start = 0, end = 0;
 	name = String( args[1].c_str() );
 	while( name[++i] != '\0' ){
@@ -1576,25 +1532,15 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	ops >> Option( "write-pwm-file", pwmFolder );
 
-	/*
-	 * process settings depending on arguments
-	 * * --aa-specific
-	 */
-
 	std::stringstream s;
 	s << Global::outputDirectory << "/" << Global::shortFileName << ".mtf";
-
-	/*
-	 * process settings depending on arguments
-	 * * --em-specific
-	 */
 
 	if( em && verbose ){
 
 		std::cout << std::endl;
 		std::cout << " ____________________" << std::endl;
 		std::cout << "|                    |" << std::endl;
-		std::cout << "| EM MODE PARAMETERS |" << std::endl;
+		std::cout << "| BaMM!motif setting |" << std::endl;
 		std::cout << "|____________________|" << std::endl;
 		std::cout << std::endl;
 		std::cout << "sequence file" << "\t\t\t\t" << name << std::endl;
@@ -1726,53 +1672,80 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 
 Global::~Global(){
-   	if(name != NULL)  free(name);
-   	if(outputDirectory != NULL) free(outputDirectory);
-   	if(shortFileName != NULL) free(shortFileName);
-   	if(negFile != NULL) free(negFile);
-   	if(startMotif != NULL) free(startMotif);
-   	if(profFile != NULL) free(profFile);
-   	if(benchmarkFolder != NULL) free(benchmarkFolder);
-   	if(pwmFolder != NULL) free(pwmFolder);
+   	if( name != NULL ){
+   		free(name);
+   	}
+   	if( tmpDirectory != NULL ){
+   		deleteDirectory( tmpDirectory );
+   		free( tmpDirectory );
+   	}
+   	if( outputDirectory != NULL ){
+   		free( outputDirectory );
+   	}
+   	if( shortFileName != NULL ){
+   		free( shortFileName );
+   	}
+   	if( negFile != NULL ){
+   		free( negFile );
+   	}
+   	if( startMotif != NULL ){
+   		free( startMotif );
+   	}
+   	if( profFile != NULL ){
+   		free(profFile);
+   	}
+   	if( benchmarkFolder != NULL ){
+   		free( benchmarkFolder );
+   	}
+   	if( pwmFolder != NULL ){
+   		free( pwmFolder );
+   	}
 
 	ss_type set = posSet;
-	if(negSet != NULL) set = negSet;
-
-	double POW_2_16 = pow(2,16);
-	if(conservationProbs != NULL){
-		for(int i=0; i<= POW_2_16; i++){
-			if(conservationProbs[i] == NULL) continue;
-			for(int j=1; j< set->max_MultSeq; j++){
-				free(conservationProbs[i][j]);
-			}
-			free(conservationProbs[i]);
-		}
-		free(conservationProbs);
+	if( negSet != NULL ){
+		set = negSet;
 	}
 
-	if(alignmentFreeProbs != NULL){
-		for(int i=0; i<= POW_2_16; i++){
-			if(alignmentFreeProbs[i] == NULL) continue;
-			for(int j=1; j< set->max_MultSeq; j++){
-				free(alignmentFreeProbs[i][j]);
+	double POW_2_16 = pow( 2, 16 );
+	if( conservationProbs != NULL ){
+		for( int i = 0; i <= POW_2_16; i++ ){
+			if( conservationProbs[i] == NULL ){
+				continue;
 			}
-			free(alignmentFreeProbs[i]);
+			for( int j = 1; j < set->max_MultSeq; j++ ){
+				free( conservationProbs[i][j] );
+			}
+			free( conservationProbs[i] );
 		}
-		free(alignmentFreeProbs);
+		free( conservationProbs );
 	}
 
-	free(posBg_log);
-   	free(negBg_log);
-   	free(posBg);
-   	free(negBg);
+	if( alignmentFreeProbs != NULL ){
+		for( int i = 0; i <= POW_2_16; i++ ){
+			if( alignmentFreeProbs[i] == NULL ){
+				continue;
+			}
+			for( int j = 1; j < set->max_MultSeq; j++ ){
+				free( alignmentFreeProbs[i][j] );
+			}
+			free( alignmentFreeProbs[i] );
+		}
+		free( alignmentFreeProbs );
+	}
+
+	free( posBg_log );
+   	free( negBg_log );
+   	free( posBg );
+   	free( negBg );
 
 	NullModel::destruct();
 
+   	if( negSet != NULL ){
+   		NilSeqSet( negSet );
+   	}
 
-   	if(negSet != NULL) NilSeqSet(negSet);
-
-   	NilSeqSet(posSet);
-   	NilAlpha(A);
+   	NilSeqSet( posSet );
+   	NilAlpha( A );
 
    	if( em ){
 
@@ -1796,26 +1769,23 @@ Global::~Global(){
    	}
 }
 
-
-std::ostream& operator<<(std::ostream &os, const merge_type &m) {
-  switch(m) {
+std::ostream& operator<<( std::ostream &os, const merge_type &m ){
+  switch( m ){
     case LOW: os << "LOW"; break;
     case MEDIUM: os << "MEDIUM"; break;
     case HIGH: os << "HIGH"; break;
     case NO_VALID_MERGE_MODE: os << "NO_VALID_MERGE_MODE"; break;
-    default: os << "UNKNOWN - THIS MUST NOT HAPPEN!"; exit(1);
+    default: os << "UNKNOWN - THIS MUST NOT HAPPEN!"; exit( -1 );
   }
   return os;
 }
 
-
-std::ostream& operator<<(std::ostream &os, const SuppInfMode &v) {
-	switch (v) {
+std::ostream& operator<<( std::ostream &os, const SuppInfMode &v ){
+	switch( v ){
 	case SUPP_NO: os << "NO"; break;
 	case SUPP_DISOCONS: os << "DISOCONS"; break;
 	case SUPP_NNET: os << "NNET"; break;
-	default: os << "UNKNOWN - THIS MUST NOT HAPPEN!"; exit(1);
+	default: os << "UNKNOWN - THIS MUST NOT HAPPEN!"; exit( -1 );
 	}
 	return os;
 }
-

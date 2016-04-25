@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 {
     long time1 = time( NULL );
 
-	fprintf( stderr, "BaMM!motif\n\n" );
+	printf( "BaMM!motif version 1.0\n" );
 
     // initialize global variables
 	Global G( argc, argv );
