@@ -887,7 +887,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	ops >> OptionPresent( "XX-OOPS", oneOccurrence );
 	ops >> OptionPresent( "XX-ZOOPS", zeroOrOneOccurrence );
 	if( ( oneOccurrence && multipleOccurrence) || ( oneOccurrence && zeroOrOneOccurrence ) || ( zeroOrOneOccurrence && multipleOccurrence ) ){
-		fprintf( stderr, "Error: Please choose at most one of --zoops, --mops, and --oops\n" );
+		fprintf( stderr, "Error: Please choose at most one of the options --zoops, --mops, and --oops\n" );
 		exit( -1 );
 	}
 	if( !( oneOccurrence ) && !( zeroOrOneOccurrence ) && !( multipleOccurrence ) ){
@@ -965,7 +965,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	if( ops >> Option( "XX-maxPositions", maxMatchPositions ) ){
 		if( maxMatchPositions > 26 ){
-			fprintf( stderr, "maxMatchPositions > 26 not possible.\n");
+			fprintf( stderr, "Error: The maximum number of motif positions in XXmotif is 26\n");
 			exit( -1 );
 		}
 	}
@@ -1021,7 +1021,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				}
 
 				int c;
-				while( ( c=fgetc( fp ) ) != EOF && ( c == '\n' || c == '\r' ) ){
+				while( ( c = fgetc( fp ) ) != EOF && ( c == '\n' || c == '\r' ) ){
 					; // skip leading blank lines
 				}
 				if( c == EOF ){
@@ -1033,7 +1033,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				int l = 1;			// length or current binding site sequence
 				int ncounter = 0;	// counter for \n and \r
 
-				while( ( c=fgetc( fp ) ) != EOF ){
+				while( ( c = fgetc( fp ) ) != EOF ){
 					if( c == '\n' || c == '\r' ){
 						if( ncounter > 0 ){
 							continue;
@@ -1067,13 +1067,11 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				if( addColumns.size() == 1 ){
 					addColumns.resize( 2, addColumns.back() );
 				}
-				bindingSiteLength = addColumns.at( 0 ) + bindingSiteLength +
-						            addColumns.at( 1 );
+				bindingSiteLength = addColumns.at( 0 ) + bindingSiteLength + addColumns.at( 1 );
 			}
 
 			if( bindingSiteLength > posSet->min_leng ){
-				fprintf( stderr, "Binding site sequence lengths exceed positive "
-						"sequence lengths\n" );
+				fprintf( stderr, "Error: Binding sites are longer than positive sequences\n" );
 				exit( -1 );
 			}
 
@@ -1085,8 +1083,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 				std::ifstream fs( bindingSiteIntsFile, std::ios_base::in );
 				if( fs.fail() ){
-					fprintf( stderr, "Cannot open bindingSiteIntsFile %s\n",
-							 Global::bindingSiteIntsFile );
+			        fprintf( stderr, "Error: Cannot open file %s with binding site intensities\n", bindingSiteIntsFile );
 					exit( -1 );
 				}
 
@@ -1095,45 +1092,29 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 				while( fs >> weight ){
 					if( weight < 0.0f ){
-						fprintf( stderr, "Use non-negative binding site "
-								 "weights\n" );
+						fprintf( stderr, "Error: Negative binding site intensities\n" );
 						exit( -1 );
 					}
 					weights.push_back( weight );
 				}
 				fs.close();
 
-				ops >> OptionPresent( "useBindingSiteRanks",
-						              bindingSiteRankWeighting );
-
+				ops >> OptionPresent( "useBindingSiteRanks", bindingSiteRankWeighting );
 				if( bindingSiteRankWeighting ){
-
 					float N = static_cast<float>( weights.size() );
-
-					ops >> Option( "bindingSiteBackgroundQuantile",
-							       bindingSiteBackgroundQuantile );
-
-					if( !( ops >> Option( "bindingSiteBackgroundRank",
-						bindingSiteBackgroundRank ) ) ){
-
-						if( bindingSiteBackgroundQuantile > 1 - ( ( 1.0f / 2.0f
-							) / static_cast<float>( N ) ) ){
+					ops >> Option( "bindingSiteBackgroundQuantile", bindingSiteBackgroundQuantile );
+					if( !( ops >> Option( "bindingSiteBackgroundRank", bindingSiteBackgroundRank ) ) ){
+						if( bindingSiteBackgroundQuantile > 1 - ( ( 1.0f / 2.0f ) / static_cast<float>( N ) ) ){
 							bindingSiteBackgroundRank = 1.0f;
 						} else{
-							bindingSiteBackgroundRank =
-							N - roundf( N * bindingSiteBackgroundQuantile );
+							bindingSiteBackgroundRank = N - roundf( N * bindingSiteBackgroundQuantile );
 						}
 					}
 				} else{
 
-					ops >> Option( "bindingSiteBackgroundQuantile",
-							       bindingSiteBackgroundQuantile );
-
-					if( !( ops >> Option( "bindingSiteBackgroundIntensity",
-						bindingSiteBackgroundIntensity ) ) ){
-
-						bindingSiteBackgroundIntensity =
-						quantile( weights, bindingSiteBackgroundQuantile, 7 );
+					ops >> Option( "bindingSiteBackgroundQuantile", bindingSiteBackgroundQuantile );
+					if( !( ops >> Option( "bindingSiteBackgroundIntensity", bindingSiteBackgroundIntensity ) ) ){
+						bindingSiteBackgroundIntensity = quantile( weights, bindingSiteBackgroundQuantile, 7 );
 					}
 				}
 			}
@@ -1148,43 +1129,57 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			str << markovModelFile << ".conds";
 
 			if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
-		        fprintf( stderr, "Cannot open markovModelFile %s\n",
-		        		 str.str().c_str() );
+		        fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
 		        exit(-1);
 			}
 
 			int c;
-			while( ( c=fgetc( fp ) ) == '\n' ){
-				; // skip first blank lines
+			while( ( c = fgetc( fp ) ) != EOF && ( c == '\n' || c == '\r' ) ){
+				; // skip leading blank lines
+			}
+			if( c == EOF ){
+				fprintf( stderr, "Error: Cannot find BMM probabilities in file %s\n", str.str().c_str() );
+				exit( -1 );
 			}
 
 			int lines = 0; // lines without blank lines
 			int positions = 0;
 
-			int ncounter = 0; // \n-counter
+			int ncounter = 0; // counter for \n
+			int rcounter = 0; // counter for \r
 			while( ( c=fgetc( fp ) ) != EOF ){
-				if( c == '\n' ){
-					++lines;
-					++ncounter;
+				if( c == '\n' || c == 'r' ){
+					if( c == 'n' ){
+						if( ncounter == 0 && rcounter == 0 ){
+							lines++;
+						}
+						ncounter++;
+					} else{ // c == 'r'
+						if( rcounter == 0 && ncounter == 0 ){
+							lines++;
+						}
+						rcounter++;
+					}
 				} else{
 					if( ncounter > 1 ){
-						++positions;
-						lines -= ( ncounter-1 ); // substract blank lines
+						positions++;
+					} else if( rcounter > 1 ){
+						positions++;
 					}
-					ncounter = 0; // reset \n-counter
+					ncounter = 0; // reset counter for \n
+					rcounter = 0; // reset counter for \r
 				}
 			}
-			if( ncounter > 1 ){ // ignore last blank lines
-				lines -= ( ncounter-1 );
-			}
-
 			fclose( fp );
+
+			if( ncounter == 0 && rcounter == 0 ){
+				lines++; // handle last line without newline in kate
+			}
 
 			markovModelLength = positions + 1;
 			modelOrder = ( lines / markovModelLength ) - 1;
 
 			if( !( modelOrder < markovModelLength ) ){
-				fprintf( stderr, "Markov model format error\n" );
 				exit( -1 );
 			}
 
@@ -1192,19 +1187,17 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				addColumns.clear();
 				ops >> Option( "extend", addColumns );
 				if( addColumns.size() < 1 || addColumns.size() > 2 ){
-					fprintf( stderr, "Option --extend format error\n" );
+					fprintf( stderr, "Error: Wrong format of option --extend\n" );
 					exit( -1 );
 				}
 				if( addColumns.size() == 1 ){
 					addColumns.resize( 2, addColumns.back() );
 				}
-				markovModelLength = addColumns.at( 0 ) + markovModelLength +
-						            addColumns.at( 1 );
+				markovModelLength = addColumns.at( 0 ) + markovModelLength + addColumns.at( 1 );
 			}
 
 			if( markovModelLength > posSet->min_leng ){
-				fprintf( stderr, "Markov model columns exeed positive sequence "
-						"lengths\n" );
+				fprintf( stderr, "Error: The BMM is longer than the positive sequences\n" );
 				exit( -1 );
 			}
 
@@ -1233,7 +1226,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				addColumns.clear();
 				ops >> Option( "extend", addColumns );
 				if( addColumns.size() < 1 || addColumns.size() > 2 ){
-					fprintf( stderr, "Option --extend format error\n" );
+					fprintf( stderr, "Error: Wrong format of option --extend\n" );
 					exit( -1 );
 				}
 				if( addColumns.size() == 1 ){
@@ -1245,8 +1238,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		if( ops >> Option( "posSequenceIntensities", sequenceIntsFile ) ){
 			std::ifstream fs( sequenceIntsFile, std::ios_base::in );
 			if( fs.fail() ){
-				fprintf( stderr, "Cannot open file with positive sequence intensities %s\n",
-						 Global::sequenceIntsFile );
+				fprintf( stderr, "Error: Cannot open file %s with positive sequence intensities\n", Global::sequenceIntsFile );
 				exit( -1 );
 			}
 
@@ -1255,7 +1247,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 			while( fs >> weight ){
 				if( weight < 0.0f ){
-					fprintf( stderr, "Use nonnegative sequence weights\n" );
+					fprintf( stderr, "Error: negative positive sequence intensities\n" );
 					exit( -1 );
 				}
 				weights.push_back( weight );
@@ -1263,8 +1255,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			fs.close();
 
 			if( Global::posSet->nent != static_cast<int>( weights.size() ) ){
-				fprintf( stderr, "The number of sequences and sequence weights "
-						 "differs\n" );
+				fprintf( stderr, "Error: Differing number of positive sequences and positive sequence intensities\n" );
 				exit( -1 );
 			}
 
@@ -1345,8 +1336,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		if( ops >> OptionPresent( 'q' ) ){
 			ops >> Option( 'q', q );
 			if( q <= 0 || q >= 1 ){
-				fprintf( stderr,
-						 "Option -q restricted to 0 < q < 1.\n" );
+				fprintf( stderr, "Error: The value of option -q is restricted to ]0,1[\n" );
 				exit( -1 );
 			}
 		}
