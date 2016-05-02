@@ -1395,8 +1395,7 @@ void Motif::initHoMotifWithBindingSites( char* bindingSiteFile ){
 	list<int>::iterator iter;
 
 	int b = -1;
-	int bindingSiteLength = _length - Global::addColumns.at( 0 ) -
-			Global::addColumns.at( 1 );
+	int bindingSiteLength = _length - Global::addColumns.at( 0 ) - Global::addColumns.at( 1 );
 
 	float weight;
 	std::vector<float> weights;
@@ -1404,62 +1403,55 @@ void Motif::initHoMotifWithBindingSites( char* bindingSiteFile ){
 	if( Global::bindingSiteIntsFile != NULL ){
 		std::ifstream fs( Global::bindingSiteIntsFile, std::ios_base::in );
 		if( fs.fail() ){
-			fprintf( stderr, "Cannot open bindingSiteIntsFile %s\n",
-					Global::bindingSiteIntsFile );
+			fprintf( stderr, "Error: Cannot open file %s with binding site intensities\n", Global::bindingSiteIntsFile );
 			exit( -1 );
 		}
 
 		while( fs >> weight ){
 			if( weight < 0.0f ){
-				fprintf( stderr, "Use non-negative binding site weights\n" );
+				fprintf( stderr, "Error: Negative binding site intensities\n" );
 				exit( -1 );
 			}
 			weights.push_back( weight );
 		}
 		fs.close();
 
-		// calculate weights
+		// calculate weights from intensities
 		if( Global::rankWeighting ){
-
 			// calculate rank-based weights
-			calculateWeights( weights, Global::bindingSiteBackgroundRank, true
-			);
+			calculateWeights( weights, Global::bindingSiteBackgroundRank, true );
 		} else{
-
 			// calculate intensity-based weights
-			calculateWeights( weights, Global::bindingSiteBackgroundIntensity,
-					false );
+			calculateWeights( weights, Global::bindingSiteBackgroundIntensity, false );
 		}
 	}
 
 	if( ( fp = fopen( bindingSiteFile, "r" ) ) == NULL ){
-		fprintf( stderr, "Cannot open bindingSiteFile %s\n", bindingSiteFile
-		);
-		exit(-1);
+		fprintf( stderr, "Error: Cannot open binding sites file %s\n", bindingSiteFile );
+		exit( -1 );
 	}
 
-	line = ( char* )malloc( bindingSiteLength+2 * sizeof( char ) ); // +2: \n and \0
-	sequence = ( unsigned char* )malloc( bindingSiteLength+1 * sizeof( uint8_t ) );
+	line = ( char* )malloc( ( bindingSiteLength+2 ) * sizeof( char ) ); // +2 for \n or \r and \0
+	sequence = ( unsigned char* )malloc( ( bindingSiteLength+1 ) * sizeof( uint8_t ) );
 
 	int sequenceCounter = 0;
 
-	/* calculate counts from sequences */
+	/*
+	 * calculate counts from sequences
+	 */
 
-	/* read in binding sites line-by-line
-	 * and skip blank lines */
-	while( fgets( line, bindingSiteLength+2, fp ) != NULL ){ // +2: \n and \0
-
-		if( line[0] == '\n' ){
-			continue; // skip blank lines
+	// read in binding sites
+	while( fgets( line, bindingSiteLength+2, fp ) != NULL ){ // +2 for \n or \r and \0
+		if( line[0] == '\n' || line[0] == '\r' ){
+			// skip blank lines
+			continue;
 		} else{
-			sequenceCounter++; // sequence counter
-
+			sequenceCounter++;
 			if( Global::bindingSiteIntsFile != NULL ){
 				if( sequenceCounter <= static_cast<int>( weights.size() ) ){
 					weight = weights.at( sequenceCounter-1 );
 				} else{
-					fprintf( stderr, "The number of binding sites and binding "
-							"site weights differs\n" );
+					fprintf( stderr, "Error: The numbers of binding sites and binding site intensities differ\n" );
 					exit( -1 );
 				}
 			} else{
@@ -1467,44 +1459,46 @@ void Motif::initHoMotifWithBindingSites( char* bindingSiteFile ){
 			}
 		}
 
-		/* convert to upper-case letter
-		 * and copy to sequence without \n and \0 */
-		for( L=0; ( character = line[L] ) != '\n'; ++L ){
-			sequence[L] = AlphaCode( ( islower(character) )? toupper(character)
-					: character, Global::A );
+		// transfer line to sequence ignoring \n or \r and \0
+		for( L=0; ( character = line[L] ) != '\0'; ++L ){
+			if( character == '\n' || character == '\r' ){
+				break;
+			} else{
+				// convert to upper-case alphabet
+				sequence[L] = AlphaCode( ( islower( character ) )? toupper( character ) : character, Global::A );
+			}
 		}
 
 		if( L != bindingSiteLength ){
-			fprintf( stderr, "Binding site sequence lengths must not "
-					"differ\n" );
-			exit(-1);
+			fprintf( stderr, "Error: Please provide binding site sequences of equal length\n" );
+			exit( -1 );
 		}
 
 		if( b < 0 ){
 			// set motif indices in data structure (starting at 1)
 			for( int l=1; l <= _length; l++ ){
-				_motifColumns.push_back( l ); // set motif indices
+				// set motif indices
+				_motifColumns.push_back( l );
 			}
-			// set binding site offsets
+			// set motif offset
 			b = Global::addColumns.at( 0 ) + 1;
 		}
 
 		for( l=0; l < L; l++ ){ // across positions
 			for( k=0; k <= _order && l+k < L && sequence[l+k]; k++ ){
-				/* sequence[l+k]
-				 * checks whether nucleotide equals N
-				 * represented by 0 */
+				// sequence[l+k]
+				// check whether base equals 'N' (i.e. 0)
 				_counts[b+l+k][sub2ind( sequence, l, k )] += weight;
 				if( k > 0 ){
-					// k-mer not followed by N character
+					// k-mer not followed by base 'N'
 					_countsx[b+l+k-1][sub2ind( sequence, l, k-1 )] += weight;
 				}
 			}
 		}
 	}
+
 	if( sequenceCounter < static_cast<int>( weights.size() ) ){
-		fprintf( stderr, "The number of binding sites and binding site weights "
-				"differs\n" );
+		fprintf( stderr, "Error: The numbers of binding sites and binding site intensities differ\n" );
 		exit( -1 );
 	}
 
@@ -1515,13 +1509,12 @@ void Motif::initHoMotifWithBindingSites( char* bindingSiteFile ){
 	}
 
 	if( Global::interpolate ){
-		// calculate interpolated Markov model probabilities from counts
+		// calculate BMM probabilities from counts
 		calculateInterpolatedMarkovModelProbs( false, false );
 	} else{
-		// calculate Markov model probabilities from counts
+		// calculate MM probabilities from counts
 		calculateMarkovModelProbs();
 	}
-
 
 	if( Global::verbose ){
 		printInterpolatedMarkovModel( *this, true );
@@ -1538,24 +1531,23 @@ void Motif::initHoMotifWithInterpolatedMarkovModel( char* baseFileName ){
 		_motifColumns.push_back( l ); // set motif indices
 	}
 
-	// set binding site offsets
+	// set binding site offset
 	int b = Global::addColumns.at( 0 ) + 1;
 
 	FILE* fp;
 	std::stringstream str;
 
-	// read in conditional probababilities
+	/*
+	 * read in conditional probabilities (.conds)
+	 */
 
 	str << baseFileName << ".conds";
-
 	if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
-		fprintf( stderr, "Cannot open markovModelFile %s\n", str.str().c_str()
-		);
-		exit(-1);
+		fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
+		exit( -1 );
 	}
 
 	float value; // probability
-
 	int pos = b;
 	int field = 0;
 
@@ -1567,17 +1559,18 @@ void Motif::initHoMotifWithInterpolatedMarkovModel( char* baseFileName ){
 		}
 		_conds[pos][field] = value;
 	}
-
 	fclose( fp );
 
-	// read in probababilities
+	/*
+	 * read in probabilities (.probs)
+	 */
 
 	str.str( "" );
 	str << baseFileName << ".probs";
 
 	if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
-		fprintf( stderr, "Can't open file %s\n", str.str().c_str() );
-		exit(-1);
+		fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
+		exit( -1 );
 	}
 
 	pos = b;
@@ -1591,9 +1584,7 @@ void Motif::initHoMotifWithInterpolatedMarkovModel( char* baseFileName ){
 		}
 		_pwm[pos][field] = value;
 	}
-
 	fclose( fp );
-
 
 	if( Global::verbose ){
 		printInterpolatedMarkovModel( *this, true );

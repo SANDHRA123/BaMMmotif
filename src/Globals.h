@@ -14,19 +14,22 @@
 #include <math.h>
 #include <sys/stat.h>
 
-
 #ifdef NDEBUG
 const bool kDebug = false;
 #else
 const bool kDebug = true;
 #endif  // DEBUG
 
-#define MAX_CONS_MUTATIONS 30			/* maximum number of mutations calibrated in conservation track */
-#define MAX_MUTATED_FRACTION 1  		/* maximum fraction of mutated residues */
-#define MAX_CONSERVATION_LENGTH 15		/* maximum calibrated length of conservation track				*/
+// maximum number of mutations calibrated in conservation track
+#define MAX_CONS_MUTATIONS 30
+// maximum fraction of mutated residues
+#define MAX_MUTATED_FRACTION 1
+// maximum calibrated length of conservation track
+#define MAX_CONSERVATION_LENGTH 15
 #define PWM_LENGTH 30
 
-static const int mutIndex[4] = {(int)pow(2,0), (int)pow(2,4), (int)pow(2,8), (int)pow(2,12)}; /* indices for A, C, G, T mutations in conservation track */
+// indices for A, C, G, T mutations in conservation track
+static const int mutIndex[4] = {(int)pow(2,0), (int)pow(2,4), (int)pow(2,8), (int)pow(2,12)};
 
 enum motif_type{
 	ALL,
@@ -50,7 +53,7 @@ enum TerminusMode {
 	NONE, POS, NEG, BOTH
 };
 
-/* which kind of supplementary information to use */
+// type of supplementary information to use
 enum SuppInfMode {
 	SUPP_NO, SUPP_DISOCONS, SUPP_NNET
 };
@@ -110,16 +113,16 @@ public:
 	Global(int nopt, char *options[]);
 	~Global();
 
-	static a_type 		A;				/** Alphabet used **/
-	static ss_type 		posSet;			/** positive sequence set **/
-	static ss_type 		negSet;			/** negative sequence set **/
+	static a_type 		A;						// alphabet
+	static ss_type 		posSet;					// positive sequences
+	static ss_type 		negSet;					// negative/background sequences
 
 	static bool 		usePositionalProbs;
 	static int 			backgroundOrder;
 
 	static bool			positionalProbsRanking;
 
-	static int			GAPS;			/** number of gap combinations allowed for the start Motifs **/
+	static int			GAPS;					// number of gap combinations in start motifs to consider
 	static merge_type	mergeMode;
 	static double		gapOpening;
 	static double		gapExtension;
@@ -127,15 +130,15 @@ public:
 	static int 			conservationLength;
 	static int			maxPosSetSize;
 	static double*		motifNbCorrection;
-	static ThresholdChecker instanceThreshold;	/* threshold for final decision whether an instance is a motif or not */
-	static bool         removeHomology; /* remove perfectly conserved motifs with maxMatchPostions */
+	static ThresholdChecker instanceThreshold;	// threshold to decide whether an instance is a motif
+	static bool         removeHomology;			// remove perfectly conserved motifs
 
-	static double		consCorrection; 	  /* pValCorrection for conservation pValue */
-	static double		overrepCorrection; 	  /* pValCorrection for overrepresentatino pValue */
-	static double		consPvalWeight;		  /* weight for pVal combination */
+	static double		consCorrection;			// p-value correction for conservation p-value
+	static double		overrepCorrection;		// p-value correction for overrepresentation p-value
+	static double		consPvalWeight;			// p-value combination weighting
 	static int			maxSeqCount;
 
-	static int 			maxMotifsPerSequence;	  /* maximum number of motifs per sequence */
+	static int 			maxMotifsPerSequence;	// maximum number of motifs per sequence
 
 	static bool 	    useRankPvalues;
 	static bool			useAliFree;
@@ -143,47 +146,46 @@ public:
 	static bool			maximizeMotifLength;
 	static bool			noRefinementPhase;
 
-	static bool   		multipleOccurrence; /** multiple instances should be found in one sequence **/
-	static bool   		oneOccurrence; /** multiple instances should be found in one sequence **/
-	static bool			zeroOrOneOccurrence;
-	static bool			ungappedOutput; /** output file in pwm-folder has gapped output **/
-	static bool			revcomp;		/** search on reverse complement of sequences **/
+	static bool   		multipleOccurrence;		// multiple occurrence per sequence
+	static bool   		oneOccurrence;			// one occurrence per sequence
+	static bool			zeroOrOneOccurrence;	// zero or one occurrence per sequence
+	static bool			ungappedOutput;			// output file in PWM directory has gapped output
+	static bool			revcomp;				// search on reverse complements of positive sequences too
 	static bool 		repeatFiltering;
 	static bool			lowComplexityFilter;
 
-	/****** startMotif ****/
-	static char* 		startMotif;		/** start motif for motif discovery **/
-	static char*		profFile;		/** file with a the start profile for motif discovery **/
-	static int			startRegion;	/** start of enriched region **/
-	static int 			endRegion;		/** end of enriched region **/
-	static motif_type 	type;			/** type of motif: normal, palin or sequential **/
-	static seq_format	seqFormat;		/** format of input sequence: FASTA, CLUSTALW **/
+	static char* 		startMotif;				// start motif (IUPAC pattern string) for motif discovery
+	static char*		profFile;				// file with start profile (PWM) for motif discovery
+	static int			startRegion;			// expected start position of region enriched for motif occurrences
+	static int 			endRegion;				// expected end position of region enriched for motif occurrences
+	static motif_type 	type;					// seed pattern types: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM
+	static seq_format	seqFormat;				// format of positive and negative/background sequence sets: FASTA, CLUSTALW
 
-  	static float***		conservationProbs;	/** conservation probability for a nmer with mutations in n species **/
-  	static float***		alignmentFreeProbs;	/** conservation probability for a nmer with mutations in n species **/
+  	static float***		conservationProbs;		// conservation probability for a n-mer with mutations in n species
+  	static float***		alignmentFreeProbs;		// conservation probability for a n-mer with mutations in n species
 
-  	static double* 		posBg_log;		/* logarithm of distribution of positive set **/
-  	static double* 		posBg;			/* background of positive set **/
-  	static double* 		negBg_log;		/* logarithm of distribution of negative set **/
-  	static double*		negBg;			/* background of negative set **/
+  	static double* 		posBg_log;				// logarithm of base frequencies in positive sequences
+  	static double* 		posBg;					// base frequencies in positive sequences
+  	static double* 		negBg_log;				// logarithm of base frequencies in negative/background sequences
+  	static double*		negBg;					// base frequencies in negative/background sequences
 
-    static double		pseudo;			/** pseudocounts for pwm **/
-    static double		plusFrac;		/** plus fraction in motif iteration **/
+    static double		pseudo;					// fraction of PWM pseudocounts
+    static double		plusFrac;				// plus fraction in motif iteration
 
-    static int			neff_pwm;			/** effective number of different bases in one pwm column **/
-    static int 			neff_discrete; /** effective alphabet size before switching to PWM */
+    static int			neff_pwm;				// effective number of different bases in single PWM columns
+    static int 			neff_discrete;			// effective number of different bases in single IUPAC extensions
 
-	static int 			downstream;		/** distance between the alignment point and the end of the input sequences **/
+	static int 			downstream;				// distance between the anchor position and the end of positive sequences
 
-	static char* 		outputDirectory; /** output Directory **/
-	static char* 		tmpDirectory;		// temporary XXmotif directory
-	static char*		name;			/** input file name **/
-	static char*		shortFileName;	/** input file name without path and .**/
-	static char*		negFile;		/** negative input file name **/
-	static char* 		benchmarkFolder;/** folder in which the benchmark results are stored **/
-	static char* 		pwmFolder;		/** folder in which pwms for bulyk benchmark are stored **/
+	static char* 		outputDirectory;		// output directory for the results
+	static char* 		tmpDirectory;			// temporary XXmotif directory
+	static char*		name;					// positive sequence file name
+	static char*		shortFileName;			// positive sequence file basename
+	static char*		negFile;				// negative/background sequence file name
+	static char* 		benchmarkFolder;		// directory for the benchmark results
+	static char* 		pwmFolder;				// directory for PWM results of Bulyk benchmark
 
-	static int			maxMotifLevel; /** max number of extensions accepted for next level */
+	static int			maxMotifLevel;			// maximum number of extensions to consider per level
 	static double		minCoverage; /** min number of sequences with instance of a motif */
 
 	static int			minMatchPositions; /** max number of non-wildcard motif positions */

@@ -48,37 +48,37 @@ bool 		Global::repeatFiltering = false;
 bool 		Global::lowComplexityFilter = false;
 bool		Global::noRefinementPhase = false;
 
-char* 		Global::startMotif = NULL;		// start motif (IUPAC pattern string) for motif discovery
-char*		Global::profFile = NULL;		// file with start profile (PWM) for motif discovery **/
-int			Global::startRegion = 0;		// expected start position of region enriched for motif occurrences
-int			Global::endRegion = 1;			// expected start position of region enriched for motif occurrences
-motif_type	Global::type = ALL;				// seed pattern types: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM
-seq_format	Global::seqFormat = FASTA;		// format of positive and negative/background sequence sets: FASTA, CLUSTALW
+char* 		Global::startMotif = NULL;				// start motif (IUPAC pattern string) for motif discovery
+char*		Global::profFile = NULL;				// file with start profile (PWM) for motif discovery
+int			Global::startRegion = 0;				// expected start position of region enriched for motif occurrences
+int			Global::endRegion = 1;					// expected end position of region enriched for motif occurrences
+motif_type	Global::type = ALL;						// seed pattern types: ALL, FIVEMERS, PALINDROME, TANDEM, NOPALINDROME, NOTANDEM
+seq_format	Global::seqFormat = FASTA;				// format of positive and negative/background sequence sets: FASTA, CLUSTALW
 
 float***	Global::conservationProbs = NULL;
 float***	Global::alignmentFreeProbs = NULL;
 bool        Global::removeHomology = false;
 
-double* 	Global::posBg_log = NULL;		// logarithm of base frequencies in positive sequences
-double* 	Global::posBg = NULL;			// base frequencies in positive sequences
-double* 	Global::negBg_log = NULL; 		// logarithm of base frequencies in negative/background sequences
-double*		Global::negBg = NULL;			// base frequencies in negative/background sequences
+double* 	Global::posBg_log = NULL;				// logarithm of base frequencies in positive sequences
+double* 	Global::posBg = NULL;					// base frequencies in positive sequences
+double* 	Global::negBg_log = NULL; 				// logarithm of base frequencies in negative/background sequences
+double*		Global::negBg = NULL;					// base frequencies in negative/background sequences
 
-double		Global::pseudo = 0.1;			// fraction of PWM pseudocounts
+double		Global::pseudo = 0.1;					// fraction of PWM pseudocounts
 double		Global::plusFrac = 0;
-int			Global::neff_pwm;				// effective number of different bases in single PWM columns
-int 		Global::neff_discrete;			// effective number of different bases in single IUPAC extensions
+int			Global::neff_pwm;						// effective number of different bases in single PWM columns
+int 		Global::neff_discrete;					// effective number of different bases in single IUPAC extensions
 
-int			Global::downstream = 0;			// distance between the anchor position and the end of positive sequences
+int			Global::downstream = 0;					// distance between the anchor position and the end of positive sequences
 
-char* 		Global::outputDirectory = NULL; // output directory for the results
-char* 		Global::tmpDirectory = NULL;	// temporary XXmotif directory
-char*		Global::name = NULL;			// positive sequence file name
-char*		Global::shortFileName = NULL;	// positive sequence file basename
-char*		Global::negFile = NULL;			// negative/background sequence file name
-char* 		Global::benchmarkFolder = NULL; // directory for the benchmark results
+char* 		Global::outputDirectory = NULL; 		// output directory for the results
+char* 		Global::tmpDirectory = NULL;			// temporary XXmotif directory
+char*		Global::name = NULL;					// positive sequence file name
+char*		Global::shortFileName = NULL;			// positive sequence file basename
+char*		Global::negFile = NULL;					// negative/background sequence file name
+char* 		Global::benchmarkFolder = NULL; 		// directory for the benchmark results
 char*		Global::pwmFolder = NULL;
-int			Global::maxMotifLevel = 3;		// maximum number of extensions per level to consider
+int			Global::maxMotifLevel = 3;				// maximum number of extensions to consider per level
 double		Global::minCoverage;
 
 int			Global::minMatchPositions;
@@ -89,7 +89,7 @@ bool		Global::maximizeMotifLength = true;
 StateType 	Global::type_of_states;
 
 
-// cs blast options
+// CS-BLAST options
 int			Global::cswlen;
 std::string	Global::csprofiles;
 int 		Global::csbest;
@@ -116,7 +116,7 @@ std::string Global::nnetFilename;
 bool 		Global::DEBUG = false;
 std::string Global::argv0;
 
-// homogeneous background BMM options used in XXmotif
+// homogeneous background BMM options (as used in XXmotif)
 int Global::order = 2;						// model order
 float Global::pseudocountsFactor = 10.0f;	// prior strength
 float Global::countsOffset = 0.0f;			// counts offset
@@ -1121,7 +1121,9 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		} else if( ops >> OptionPresent( "markovModelFile" ) ){
 			ops >> Option( "markovModelFile", markovModelFile );
 
-			/* determine model length and order */
+			/*
+			 * determine the length and order of the Markov model
+			 */
 
 			FILE* fp;
 			std::stringstream str;
@@ -1130,7 +1132,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 			if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
 		        fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
-		        exit(-1);
+		        exit( -1 );
 			}
 
 			int c;
