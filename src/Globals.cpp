@@ -551,7 +551,7 @@ void Global::printHelp(){
 	printf( "      -A|--Alpha <FLOAT>\n"
 			"          Prior strength. The default is 10.0.\n\n" );
 
-	printf( "  EM options.\n" );
+	printf( "  EM options\n" );
 	printf( "      -q <FLOAT>\n"
 			"          Prior probability for a positive sequence to contain a motif. The\n"
 			"          default is 0.9.\n\n" );

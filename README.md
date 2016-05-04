@@ -1,11 +1,11 @@
 # BaMM!motif
 
-Bayesian Markov model motif discovery
-
 SYNOPSIS
+
       BaMMmotif DIRPATH FILEPATH [OPTIONS]
 
 DESCRIPTION
+
       Bayesian Markov Model motif discovery software.
 
       DIRPATH
@@ -15,7 +15,9 @@ DESCRIPTION
           FASTA file with positive sequences of equal length.
 
 OPTIONS
+
   Sequence options
+
       --negSequenceSet <FILEPATH>
           FASTA file with negative/background sequences used to learn the
           (homogeneous) background BMM. If not specified, the background BMM is
@@ -27,6 +29,7 @@ OPTIONS
           derived from ChIP-seq experiments.
 
   Options to initialize a single BMM from file
+
       --bindingSiteFile <FILEPATH>
           File with binding sites of equal length (one per line).
 
@@ -35,6 +38,7 @@ OPTIONS
           filename extension).
 
   Options to initialize one or more BMMs from XXmotif PWMs
+
       --minPWMs <INTEGER>
           Minimum number of PWMs. The options --maxPValue and --minOccurrence
           are ignored. The default is 1.
@@ -56,6 +60,7 @@ OPTIONS
           from PWMs are ignored.
 
   Options for (inhomogeneous) motif BMMs
+
       -k <INTEGER>
           Order. The default is 2.
 
@@ -79,13 +84,15 @@ OPTIONS
           are not being extended.
 
   Options for the (homogeneous) background BMM
+
       -K <INTEGER>
           Order. The default is 2.
 
       -A|--Alpha <FLOAT>
           Prior strength. The default is 10.0.
 
-  EM options.
+  EM options
+
       -q <FLOAT>
           Prior probability for a positive sequence to contain a motif. The
           default is 0.9.
@@ -96,6 +103,7 @@ OPTIONS
           is smaller than epsilon. The default is 0.001.
 
   XXmotif options
+
       --XX-ZOOPS
           Use the zero-or-one-occurrence-per-sequence model (default).
 
@@ -158,6 +166,7 @@ OPTIONS
           Suppress progress bars.
 
   Options to score sequences
+
       --scorePosSequenceSet
           Score positive (training) sequences with optimized BMMs.
 
@@ -169,6 +178,7 @@ OPTIONS
           provided in a single or multiple FASTA files.
 
   Output options
+
       --saveInitBMMs
           Write initialized BMM(s) to disk.
 
