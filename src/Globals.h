@@ -29,7 +29,7 @@ const bool kDebug = true;
 #define PWM_LENGTH 30
 
 // indices for A, C, G, T mutations in conservation track
-static const int mutIndex[4] = {(int)pow(2,0), (int)pow(2,4), (int)pow(2,8), (int)pow(2,12)};
+static const int mutIndex[4] = {( int )pow( 2, 0 ), ( int )pow( 2, 4 ), ( int )pow( 2, 8 ), ( int )pow( 2, 12 )};
 
 enum motif_type{
 	ALL,
@@ -47,54 +47,66 @@ enum merge_type{
 	HIGH,
 	NO_VALID_MERGE_MODE
 };
-std::ostream& operator<<(std::ostream &os, const merge_type &m);
+std::ostream& operator<<( std::ostream &os, const merge_type &m );
 
-enum TerminusMode {
-	NONE, POS, NEG, BOTH
+enum TerminusMode{
+	NONE,
+	POS,
+	NEG,
+	BOTH
 };
 
 // type of supplementary information to use
-enum SuppInfMode {
-	SUPP_NO, SUPP_DISOCONS, SUPP_NNET
+enum SuppInfMode{
+	SUPP_NO,
+	SUPP_DISOCONS,
+	SUPP_NNET
 };
-std::ostream& operator<<(std::ostream &os, const SuppInfMode &v);
+std::ostream& operator<<( std::ostream &os, const SuppInfMode &v );
 
-enum Types_t {
-	CS_63, BLOSUM45_21, BLOSUM62_21, BLOSUM80_21, GONNET_21, UNDEF
+enum Types_t{
+	CS_63,
+	BLOSUM45_21,
+	BLOSUM62_21,
+	BLOSUM80_21,
+	GONNET_21,
+	UNDEF
 };
 
-class StateType {
+class StateType{
+
 public:
+
 	Types_t type;
-	StateType() : type(UNDEF) {}
-	StateType(const Types_t &t) : type(t) {}
-	bool operator==(const Types_t &t) const {
+	StateType() : type( UNDEF ){}
+	StateType( const Types_t &t ) : type( t ){}
+	bool operator==( const Types_t &t ) const{
 		return type == t;
 	}
-	bool operator!=(const Types_t &t) const {
-		return !(*this==t);
+	bool operator!=( const Types_t &t ) const{
+		return !( *this==t );
 	}
-	static std::string toString(const StateType &t) {
-		switch (t.type) {
-		case CS_63 : return std::string("CS_63");
-		case BLOSUM45_21 : return std::string("BLOSUM45_21");
-		case BLOSUM62_21 : return std::string("BLOSUM62_21");
-		case BLOSUM80_21 : return std::string("BLOSUM80_21");
-		case GONNET_21 : return std::string("GONNET_21");
-		case UNDEF : return std::string("UNDEF");
+	static std::string toString( const StateType &t ){
+		switch( t.type ){
+		case CS_63 : return std::string( "CS_63" );
+		case BLOSUM45_21 : return std::string( "BLOSUM45_21" );
+		case BLOSUM62_21 : return std::string( "BLOSUM62_21" );
+		case BLOSUM80_21 : return std::string( "BLOSUM80_21" );
+		case GONNET_21 : return std::string( "GONNET_21" );
+		case UNDEF : return std::string( "UNDEF" );
 		default : std::cerr << "Unknown StateType!" << std::endl; exit(1);
 		}
 	}
-	static Types_t fromString(const std::string &s) {
-		if (s == "CS_63") return CS_63;
-		else if (s=="BLOSUM45_21") return BLOSUM45_21;
-		else if (s=="BLOSUM62_21") return BLOSUM62_21;
-		else if (s=="BLOSUM80_21") return BLOSUM80_21;
-		else if (s=="GONNET_21") return GONNET_21;
-		else { assert(false); return UNDEF; }
+	static Types_t fromString( const std::string &s ){
+		if( s == "CS_63" ) return CS_63;
+		else if( s=="BLOSUM45_21" ) return BLOSUM45_21;
+		else if( s=="BLOSUM62_21" ) return BLOSUM62_21;
+		else if( s=="BLOSUM80_21" ) return BLOSUM80_21;
+		else if( s=="GONNET_21" ) return GONNET_21;
+		else{ assert( false ); return UNDEF; }
 	}
-	static int sizeOfAlphabet(const StateType &t) {
-		switch (t.type) {
+	static int sizeOfAlphabet( const StateType &t ){
+		switch( t.type ){
 		case CS_63 : return 63;
 		case BLOSUM45_21 : return 21;
 		case BLOSUM62_21 : return 21;
@@ -109,8 +121,10 @@ public:
 typedef std::list<int, Pool_alloc<int> > motif_columns_type;
 
 class Global{
+
 public:
-	Global(int nopt, char *options[]);
+
+	Global( int nopt, char *options[] );
 	~Global();
 
 	static a_type 		A;						// alphabet
@@ -186,376 +200,268 @@ public:
 	static char* 		pwmFolder;				// directory for PWM results of Bulyk benchmark
 
 	static int			maxMotifLevel;			// maximum number of extensions to consider per level
-	static double		minCoverage; /** min number of sequences with instance of a motif */
+	static double		minCoverage;			// minimum number of sequences with an instance of the motif
 
-	static int			minMatchPositions; /** max number of non-wildcard motif positions */
-	static int			maxMatchPositions; /** min number of non-wildcard motif positions */
+	static int			minMatchPositions;		// minimum number of non-wildcard motif positions
+	static int			maxMatchPositions;		// maximum number of non-wildcard motif positions
 
-	/* background model order >= 0 */
-	static int order;
-	/* background model pseudocounts factor >= 0 */
-	static float pseudocountsFactor;
-	/* background model counts offset >= 0 */
-	static float countsOffset;
+	// homogeneous background BMM options
+	static int order;							// model order
+	static float pseudocountsFactor;			// prior strength
+	static float countsOffset;					// counts offset
 
 	/*
-	 * Expectiation Maximization (EM) parameters
-	 * */
-
-	/*
-	 * higher-order modeling and EM mode
+	 * BaMM!motif options
 	 */
+
 	static bool	em;
 
 	/*
-	 * Parameters to initialize models from file
-	 * */
-
-	/*
-	 * binding sites to initialize a single Markov model. Sequence lengths must
-	 * not differ and be provided line-by-line
+	 * Options to initialize a single BMM from file
 	 */
+
+	// file with binding sites of equal length
+	// one binding site per line
 	static char* bindingSiteFile;
-	/*
-	 * binding sites lengths
-	 */
+	// length of binding sites
 	static int bindingSiteLength;
-
-	/*
-	 * Markov model file name (without ending) to initialize a single Markov
-	 * model. Files .conds and .probs need to be available
-	 */
+	// file with BMM probabilities
+	// omit .conds and .probs filename extensions
 	static char* markovModelFile;
-	/*
-	 * Markov model size
-	 */
+	// length of Markov model
 	static int markovModelLength;
 
 	/*
-	 * Parameters to initialize models from XXmotif results. Parameters
-	 * bindingSiteFile and markovModelFile must not be provided simultaneously
-	 * */
+	 * Options to initialize one or more BMMs from XXmotif PWMs
+	 */
 
-	/*
-	 * number of one or more XXmotif models in the ranking used to initialize
-	 * Markov models. The remaining parameters avaiable to choose models from
-	 * XXmotif results are ignored
-	 */
-	static std::vector<int> nrModels;
-	/*
-	 * min. number of XXmotif models used to initialize Markov models.
-	 * Independent on pValueThreshold and minOccurrence
-	 */
+	// minimum number of PWMs
+	// options pValueThreshold and minOccurrence are ignored
 	static int minModels;
-	/*
-	 * max. number of XXmotif models used to initialize Markov models
-	 */
+	// maximum number of PWMs
 	static int maxModels;
-	/*
-	 * max. p-value of XXmotif models used to initialize Markov models. Not
-	 * applied to min. number of models
-	 */
+	// maximum p-value of PWMs
+	// filter is not applied to the top minimum number of PWMs (minModels)
 	static double pValueThreshold;
-	/*
-	 * min. percentage of sequences containing a binding site instance. Not
-	 * applied to min. number of models
-	 */
+	// minimum fraction of sequences that contain the motif
+	// filter is not applied to the top minimum number of PWMs (minModels)
 	static float minOccurrence;
-	/*
-	 * add columns to the left and right of XXmotif models used to initialize
-	 * Markov models
-	 */
-	static std::vector<int> addColumns;
-	/*
-	 * use model-specific specificity factor by calculating the percentage of
-	 * positive sequences containing a corresponding binding site instance
-	 */
+	// PWM ranks in XXmotif results
+	// former options to initialize BMMs from PWMs are ignored
+	static std::vector<int> nrModels;
+
+	// set the prior probability for a positive sequence to contain a motif to
+	//   the fraction of sequences that contain a binding site instance that
+	//   XXmotif used to build the PWM
+	// option only works for a single PWM
 	static bool msq;
 
 	/*
-	 * Markov model parameters
-	 * */
-
-	/*
-	 * Markov model order
+	 * Options for (inhomogeneous) motif BMMs
 	 */
+
+	// order
 	static int modelOrder;
-	/*
-	 * order-specific prior strength. Order k fixes vector size to k+1.
-	 */
+	// order-specific prior strength
 	static std::vector<float> alpha;
-	/*
-	 * calculate order-specific alphas according to beta x gamma^(k-1)
-	 * (for k > 0).
-	 */
+	// calculate order-specific alphas according to beta x gamma^(k-1)
 	static float beta;
-	/*
-	 * calculate order-specific alphas according to beta x gamma^(k-1)
-	 * (for k > 0).
-	 */
+	// calculate order-specific alphas according to beta x gamma^(k-1)
 	static float gamma;
-
-	/*
-	 * learn hyper parameter alpha during interpolation of markov models
-	 */
-    static bool learnHyperParameter;
-
-    /*
-     * flag in order to print output for debugging he alpha learning part only
-     */
-    static bool debugAlphalearning;
-
-    /*
-     *  whether or not to use position specific alhpa's
-     */
+    // use position-specific alphas
     static bool positionSpecificAlphas;
-
-
-	/*
-	 * interpolate between higher- and lower-order probabilities
-	 */
+    // calculate prior probabilities from lower-order probabilities instead of
+    //   background frequencies of mononucleotides
 	static bool interpolate;
+	// add uniformly initialized positions to the left/right of initial BMMs
+	static std::vector<int> addColumns;
 
 	/*
-	 * Interpolated Markov background model parameters
-	 * */
-
-	/*
-	 * Background model order
+	 * Options for the (homogeneous) background BMM
 	 */
+
+	// order
 	static int modelOrderBg;
-	/*
-	 * Background model pseudo-counts factor
-	 */
+	// prior strength
 	static float alphaBg;
 
 	/*
-	 * EM parameters
-	 * */
+	 * EM options
+	 */
 
-	/*
-	 * initialize Markov model but skip EM phase
-	 */
-	static bool noExpectationMaximizationPhase;
-	/*
-	 * specificity factor approximates the percentage of sequences contributing to
-	 * the Markov model
-	 */
+	// prior probability for a positive sequence to contain a motif
 	static float q;
 	static float qmax;
-	/*
-	 * EM convergence parameter
-	 */
+	// the EM algorithm is deemed to be converged when the sum over the absolute
+	//   differences in BMM probabilities from successive EM rounds is smaller
+	//   than epsilon
 	static float epsilon;
-	/*
-	 * likelihood or max. order model parameter EM convergence
-	 */
+	// the EM algorithm is deemed to be converged when the likelihood converges
 	static bool likelihoodConvergence;
-	/*
-	 * max. number of EM iterations
-	 */
+	// limit the number of EM iterations
 	static int maxEMIterations;
-	/*
-	 * update interpolated Markov model probabilities with last EM iteration's
-	 * pseudo-counts
-	 */
+    // initialize BMMs only
+	static bool noExpectationMaximizationPhase;
+
+	// optimize alphas
+    static bool learnHyperParameter;
+    // verbose printouts to debug alpha learning code
+    static bool debugAlphalearning;
+
+    // calculate BMM probabilities using pseudocounts from the previous EM
+    //   iteration
 	static bool lastCondsPseudoCounts;
-	/*
-	 * calculate 0th-order interpolated Markov model pseudo-counts from initial
-	 * 0th-order probabilities
-	 */
+	// calculate 0'th-order BMM probabilities using pseudocounts calculated from
+	//   initial 0'th-order BMM probabilities
 	static bool monoProbsPseudoCounts;
-	/*
-	 * calculate 0th-order interpolated Markov model pseudo-counts from initial
-	 * 0th-order probabilities using 0th-order pseudo-counts factor N * q *
-	 * alphaZeroFactor
-	 */
+	// calculate 0'th-order BMM probabilities using pseudocounts calculated from
+	//   initial 0'th-order BMM probabilities and alpha = N*q*alphaZeroFactor
 	static float alphaZeroFactor;
 
 	/*
-	 * Weighting parameters
+	 * Options for weighting positive sequences
 	 */
 
-	/*
-	 * intensity or significance values for positive sequences. The higher the
-	 * values the higher the weights
-	 */
+	// file with intensities for positive sequences (one intensity per line)
+	//    used to weight sequences in the EM algorithm
+	// the order of intensities must conform to the order of positive sequences
+	// higher intensities produce higher sequence weights
 	static char* sequenceIntsFile;
-	/*
-	 * parameter to initialize models from XXmotif results by weighting
-	 * instances with corresponding sequence weigths. Option --sequenceIntsFile
-	 * must be provided simultaneously. Options --bindingSiteFile and
-	 * --markovModelFile must not be provided simultaneously
-	 */
+	// use intensities to initialize BMMs from weighted instances of XXmotif
 	static bool initInts;
-	/*
-	 * rank-based weighting. Defaults to intensity-based weighting
-	 */
+	// use intensity ranks instead of intensities to calculate weights
 	static bool rankWeighting;
-	/*
-	 * quantile to estimate the background intensity value (or rank). Sequences
-	 * having their intensity value (rank) below (above) the background
-	 * intensity value (rank) get assigned to weight zero. Defaults to 0
-	 */
+	// the quantile of intensities (or ranks) that defines the background
+	//   intensity (rank) used to translate intensities (ranks) into weights
+	// the weight of sequences with intensities (ranks) below (above) the
+	//   background intensity (rank) is set to zero
 	static float backgroundQuantile;
-	/*
-	 * background intensity value. Sequences having their intensity value below
-	 * the background intensity value get assigned to weight zero. Defaults to
-	 * the min. intensity value
-	 */
+	// the intensity that defines the background intensity used to translate
+	//   intensities into weights
+	// the weight of sequences with intensities below the background intensity
+	//   is set to zero
 	static float backgroundIntensity;
-	/*
-	 * background intensity rank. Sequences having their intensity rank above
-	 * the background intensity rank get assigned to weight zero. Defaults to
-	 * the max. rank
-	 */
+	// the rank that defines the background rank used to translate ranks into
+	//   weights
+	// the weight of sequences with ranks above the background rank is set to
+	//   zero
 	static float backgroundRank;
 
 	/*
-	 * Binding site weighting parameters
+	 * Options for weighting binding sites
 	 */
 
-	/*
-	 * intensity or significance values for binding site sequences. The higher
-	 * the values the higher the weights. Parameter bindingSiteFile must be
-	 * provided simultaneously
-	 */
+	// file with intensities for binding site sequences (one per line) used to
+	//   initialize BMMs from weighted binding sites
+	// the order of intensities must conform to the order of sequences in the
+	//   binding sites file
+	// higher intensities produce higher weights
 	static char* bindingSiteIntsFile;
-	/*
-	 * binding site rank-based weighting. Defaults to intensity-based weighting
-	 */
+	// use intensity ranks instead of intensities to calculate weights
 	static bool bindingSiteRankWeighting;
-	/*
-	 * quantile to estimate the background intensity value (or rank). Binding
-	 * sites having their intensity value (rank) below (above) the background
-	 * intensity value (rank) get assigned to weight zero. Defaults to 0
-	 */
+	// the quantile of intensities (or ranks) that defines the background
+	//   intensity (rank) used to translate intensities (ranks) into weights
+	// the weight of binding sites with intensities (ranks) below (above) the
+	//   background intensity (rank) is set to zero
 	static float bindingSiteBackgroundQuantile;
-	/*
-	 * background intensity value. Binding sites having their intensity value
-	 * below the background intensity value get assigned to weight zero.
-	 * Defaults to the min. binding site intensity value
-	 */
+	// the intensity that defines the background intensity used to translate
+	//   intensities into weights
+	// the weight of binding sites with intensities below the background
+	//   intensity is set to zero
 	static float bindingSiteBackgroundIntensity;
-	/*
-	 * background intensity rank. Binding sites having their intensity rank
-	 * above the background intensity rank get assigned to weight zero. Defaults
-	 * to the max. binding site rank
-	 */
+	// the rank that defines the background rank used to translate ranks into
+	//   weights
+	// the weight of binding sites with ranks above the background rank is set
+	//   to zero
 	static float bindingSiteBackgroundRank;
 
 	/*
-	 * Scoring parameters
-	 * */
-
-	/*
-	 * evaluate model(s) on training sequences
+	 * Options to score sequences
 	 */
+
+	// score positive (training) sequences with optimized BMMs
 	static bool testPosSequences;
-	/*
-	 * evaluate model(s) on background sequences
-	 */
+	// score background (training) sequences with optimized BMMs
 	static bool testNegSequences;
-	/*
-	 * evaluate model(s) on sequences in FASTA format. Specify one or more files.
-	 * Sequence lengths may differ
-	 */
+	// score test sequences with optimized BMMs
+	// test sequences can be provided in a single or multiple FASTA files
 	static std::vector<std::string> testSequenceFile;
-	/*
-	 * evaluate PWM model(s) used to initialize Markov model(s) on test
-	 * sequences
-	 */
+	// score sequences with XXmotif PWMs
 	static bool evaluatePWMs;
-
-	/*
-	 * calculate log probabilities instead of log likelihood ratios
-	 */
+	// calculate log instead of log-odds scores
 	static bool logProbs;
 
 	/*
-	 * Output parameters
-	 * */
+	 * Output options
+	 */
 
-	/*
-	 * save Markov models after initialization to file
-	 */
+	// write initialized BMM(s) to disk
 	static bool saveInitModels;
-	/*
-	 * save Markov models after EM phase to file
-	 */
+	// write optimized BMM(s) to disk
 	static bool saveModels;
-	/*
-	 * save EM iteration's sequence likelihoods and positional odds to file
-	 */
+	// write sequence likelihoods and positional odds scores to disk after each
+	//   EM iteration
 	static bool saveExpectationMaximizationLikelihoods;
-	/*
-	 * save EM iteration's Markov models to file
-	 */
+	// write BBMs to disk after each EM iteration
 	static bool saveExpectationMaximizationModels;
-	/*
-	 * verbose printouts
-	 */
+	// verbose terminal printouts
 	static bool	verbose;
 
 	/*
-	 * Internal parameters
+	 * BaMM!motif variables
 	 */
 
-	/*
-	 * monomer background frequencies
-	 */
+	// momomer background frequencies
 	static double* freqs;
-	/*
-	 * calculate background probabilities for k-mers with gaps. Gaps are mandatory
-	 * in order to initialize from XXmotif's models
-	 */
+	// calculate background probabilities for k-mers with gaps
+	// gaps are mandatory in order to initialize from XXmotif PWMs
 	static bool gaps;
-	/*
-	 * list of sequences to evaluate model(s)
-	 */
+	// list of test sequences to score
 	static std::list<ss_type> testSet;
 
-	/* csblast stuff */
+	// CS-BLAST variables
 	static int			cswlen;
 	static std::string	csprofiles;
 	static int 			csbest;
 
-	/* MadonaPro stuff */
-	static double		disoconsWeight; /** weight for P value combination */
-	static TerminusMode termMode; /** append dollar to pos_set sequence termini? */
-	static float		dollarScaleFactor; /** factor to scale $ frequencies */
-	static StateType	type_of_states;		/** type of profile states */
-	static int			maxIterations;	/** max number of pwm iterations */
+	// MadonaPro variables
+	static double		disoconsWeight;		// weight for p-value combination
+	static TerminusMode termMode;			// append dollar to positive sequence termini?
+	static float		dollarScaleFactor;  // factor to scale $ frequencies
+	static StateType	type_of_states;		// type of profile states
+	static int			maxIterations;		// maximum number of PWM iterations
 	typedef std::unordered_set<std::string> tracked_t;
-	static tracked_t trackedMotifs;	/** all dimer/trimer substrings will be tracked, i.e. [KR][DE]EL */
-	static bool isTracked(const std::string &s);
+	static tracked_t trackedMotifs;			// all dimer/trimer substrings are tracked, i.e. [KR][DE]EL
+	static bool isTracked( const std::string &s );
 	static bool 		trackedElongation;
-	static bool			trackedOnly;	/** use tracked motifs only as initial seeds */
-	static double		extensionECut; /** initial seeds with E<=cut will be extended */
-	static int			extensionMinCut; /** minimum number of extended seeds (if enough) */
-	static int			extensionMaxCut; /** maximum number of extended seeds */
-	static double		aaStateSigThresh; /** min score s[a] to consider a state relevant for amino acid s */
-	static double		aaSeqFreqThresh; /** min fraction of sequences with aa conserved for extension */
-	static bool			batch_mode; /** if running non-interactively (suppress progress indicators) */
+	static bool			trackedOnly;		// use only tracked motifs as initial seeds
+	static double		extensionECut;		// initial seeds with E <= cut are extended
+	static int			extensionMinCut;	// minimum number of extended seeds (if enough)
+	static int			extensionMaxCut;	// maximum number of extended seeds
+	static double		aaStateSigThresh;	// minimum score s[a] to consider a state relevant for amino acid s
+	static double		aaSeqFreqThresh;	// minimum fraction of sequences with aa conserved for extension
+	static bool			batch_mode;			// if running non-interactively (suppress progress indicators)
 
 	static bool fixedPosition;
-	static double finalFilterThreshold; /** E-value threshold for filtering final motifs */
+	static double finalFilterThreshold;		// e-value threshold for filtering final motifs
 
 	static bool 		DEBUG;
-	static std::string	argv0; /** name of executable as given on the command line */
+	static std::string	argv0;				// name of executable as given on the command line
 
 	static std::string nnetFilename;
 
-	static char* String(const char *s);
-	static void createDirectory(const char *s);
+	static char* String( const char *s );
+	static void createDirectory( const char *s );
 	static void deleteDirectory( const char *s );
+
 private:
-	bool readCommandLineOptions(int argc, char *argv[]);
+
+	bool readCommandLineOptions( int argc, char *argv[] );
 	void printHelp();
 };
 
-inline char* Global::String(const char *s){
-  return strdup(s);
+inline char* Global::String( const char *s ){
+	return strdup( s );
 }
 
 inline void Global::createDirectory( const char *s ){
@@ -586,85 +492,94 @@ inline void Global::deleteDirectory( const char *s ){
 
 namespace GetOpt
 {
-	template <> inline _Option::Result convert<char*>(const std::string& s, char*& d, std::ios::fmtflags)
-	{
+	template <> inline _Option::Result convert<char*>( const std::string& s, char*& d, std::ios::fmtflags ){
 		_Option::Result ret = _Option::BadType;
-		d = Global::String(s.c_str());
+		d = Global::String( s.c_str() );
 		ret = _Option::OK;
 		return ret;
 	}
 
-	template <> inline _Option::Result convert<motif_type>(const std::string& s, motif_type& d, std::ios::fmtflags)
-	{
+	template <> inline _Option::Result convert<motif_type>( const std::string& s, motif_type& d, std::ios::fmtflags ){
 		_Option::Result ret = _Option::BadType;
 
-		if(s.compare("PALINDROME") == 0) {
-			d = PALINDROME; std::cerr << "Motif Type: PALINDROME" << std::endl;
+		if( s.compare( "PALINDROME" ) == 0 ){
+			d = PALINDROME; std::cerr << "Motif seeds: PALINDROME" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("TANDEM") == 0) {
-			d = TANDEM; std::cerr << "Motif Type: TANDEM" << std::endl;
+		}else if( s.compare( "TANDEM" ) == 0 ){
+			d = TANDEM; std::cerr << "Motif seeds: TANDEM" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("NOPALINDROME") == 0){
-			d = NOPALINDROME; std::cerr << "Motif Type: NOPALINDROME" << std::endl;
+		}else if( s.compare( "NOPALINDROME" ) == 0 ){
+			d = NOPALINDROME; std::cerr << "Motif seeds: NOPALINDROME" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("NOTANDEM") == 0){
-			d = NOTANDEM; std::cerr << "Motif Type: NOTANDEM" << std::endl;
+		}else if( s.compare( "NOTANDEM" ) == 0 ){
+			d = NOTANDEM; std::cerr << "Motif seeds: NOTANDEM" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("ALL") == 0){
-			d = ALL; std::cerr << "Motif Type: ALL" << std::endl;
+		}else if( s.compare( "ALL" ) == 0 ){
+			d = ALL; std::cerr << "Motif seeds: ALL" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("FIVEMERS") == 0){
-			d = FIVEMERS; std::cerr << "Motif Type: FIVEMERS" << std::endl;
+		}else if( s.compare( "FIVEMERS" ) == 0 ){
+			d = FIVEMERS;
+			std::cerr << "Motif seeds: FIVEMERS" << std::endl;
+			ret = _Option::OK;
 		}else {
-			d = NO_VALID_MOTIF_TYPE; std::cerr << "\nERROR: Motif type \"" << s << "\" not possible" << std::endl;
+			d = NO_VALID_MOTIF_TYPE;
+			std::cerr << "Error: Motif seeds \"" << s << "\" not accepted" << std::endl;
 		}
 		return ret;
 	}
 
-	template <> inline _Option::Result convert<merge_type>(const std::string& s, merge_type& d, std::ios::fmtflags)
-	{
+	template <> inline _Option::Result convert<merge_type>( const std::string& s, merge_type& d, std::ios::fmtflags ){
 		_Option::Result ret = _Option::BadType;
 
-		if(s.compare("LOW") == 0) {
-			d = LOW; std::cerr << "Similarity threshold for merging motifs set to: LOW" << std::endl;
+		if( s.compare( "LOW" ) == 0 ){
+			d = LOW;
+			std::cerr << "Similarity threshold for merging motifs set to: LOW" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("MEDIUM") == 0) {
-			d = MEDIUM; std::cerr << "Similarity threshold for merging motifs set to: MEDIUM" << std::endl;
+		}else if( s.compare( "MEDIUM" ) == 0 ){
+			d = MEDIUM;
+			std::cerr << "Similarity threshold for merging motifs set to: MEDIUM" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("HIGH") == 0){
-			d = HIGH; std::cerr << "Similarity threshold for merging motifs set to: HIGH" << std::endl;
+		}else if( s.compare( "HIGH" ) == 0 ){
+			d = HIGH;
+			std::cerr << "Similarity threshold for merging motifs set to: HIGH" << std::endl;
 			ret = _Option::OK;
-		}else {
-			d = NO_VALID_MERGE_MODE; std::cerr << "\nERROR: Similarity threshold for merging motifs \"" << s << "\" not possible" << std::endl;
+		}else{
+			d = NO_VALID_MERGE_MODE;
+			std::cerr << "Error: Similarity threshold for merging motifs \"" << s << "\" not accepted" << std::endl;
 		}
 		return ret;
 	}
-	template <> inline _Option::Result convert<seq_format>(const std::string& s, seq_format& d, std::ios::fmtflags)
-	{
+
+	template <> inline _Option::Result convert<seq_format>( const std::string& s, seq_format& d, std::ios::fmtflags ){
 		_Option::Result ret = _Option::BadType;
 
-		if(s.compare("CLUSTALW") == 0) {
-			d = CLUSTALW; std::cout << "Format of Input Sequences: CLUSTALW" << std::endl;
+		if( s.compare( "CLUSTALW" ) == 0 ){
+			d = CLUSTALW;
+			std::cout << "Format of input sequences: CLUSTALW" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("FASTA") == 0){
-			d = FASTA; std::cout << "Format of Input Sequences: FASTA" << std::endl;
+		}else if( s.compare( "FASTA" ) == 0 ){
+			d = FASTA;
+			std::cout << "Format of input sequences: FASTA" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("MFASTA") == 0){
-			d = MFASTA; std::cout << "Format of Input Sequences: multiple FASTA" << std::endl;
+		}else if( s.compare( "MFASTA" ) == 0 ){
+			d = MFASTA;
+			std::cout << "Format of input sequences: multiple FASTA" << std::endl;
 			ret = _Option::OK;
-		}else if(s.compare("CUSTOM") == 0){
-			d = CUSTOM; std::cout << "Format of Input Sequences: customized multiple FASTA" << std::endl;
+		}else if( s.compare( "CUSTOM" ) == 0 ){
+			d = CUSTOM;
+			std::cout << "Format of input sequences: customized multiple FASTA" << std::endl;
 			ret = _Option::OK;
-		}else {
-			d = NO_VALID_SEQ_FORMAT; std::cerr << "\nERROR: Sequence Format \"" << s << "\" not accepted" << std::endl;
+		}else{
+			d = NO_VALID_SEQ_FORMAT;
+			std::cerr << "Error: Sequence format \"" << s << "\" not accepted" << std::endl;
 		}
 		return ret;
 	}
 }
 
-inline bool Global::isTracked(const std::string &s) {
-   for (auto m = trackedMotifs.begin(); m != trackedMotifs.end(); ++m) {
-      if (s.compare(*m) == 0) {
+inline bool Global::isTracked( const std::string &s ){
+   for( auto m = trackedMotifs.begin(); m != trackedMotifs.end(); ++m ){
+      if ( s.compare( *m ) == 0 ){
         return true;
       }
   }

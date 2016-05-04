@@ -30,9 +30,9 @@ int 		Global::maxMultipleSequences = 100;
 int			Global::maxPosSetSize = INT_MAX;
 ThresholdChecker	Global::instanceThreshold;
 
-double 		Global::overrepCorrection=1.05;
-double 		Global::consCorrection=1.00;
-double 		Global::consPvalWeight=1.0/3;
+double 		Global::overrepCorrection = 1.05;
+double 		Global::consCorrection = 1.00;
+double 		Global::consPvalWeight = 1.0/3;
 
 int			Global::maxMotifsPerSequence = 1000;
 int			Global::maxSeqCount = 1000;
@@ -88,7 +88,6 @@ bool		Global::maximizeMotifLength = true;
 
 StateType 	Global::type_of_states;
 
-
 // CS-BLAST options
 int			Global::cswlen;
 std::string	Global::csprofiles;
@@ -116,314 +115,217 @@ std::string Global::nnetFilename;
 bool 		Global::DEBUG = false;
 std::string Global::argv0;
 
-// homogeneous background BMM options (as used in XXmotif)
+// homogeneous background BMM options
 int Global::order = 2;						// model order
 float Global::pseudocountsFactor = 10.0f;	// prior strength
 float Global::countsOffset = 0.0f;			// counts offset
 
+/*
+ * BaMM!motif options
+ */
+
 bool Global::em = true;
 
 /*
- * Parameters to initialize models from file
- * */
-
-/*
- * binding sites to initialize a single Markov model. Sequence lengths must not
- * differ and be provided line-by-line
+ * Options to initialize a single BMM from file
  */
+
+// file with binding sites of equal length
+// one binding site per line
 char* Global::bindingSiteFile = NULL;
-/*
- * binding sites lengths
- */
+// length of binding sites
 int Global::bindingSiteLength = 30;
-
-/*
- * Markov model file name (without ending) to initialize a single Markov model.
- * Files .conds and .probs need to be available
- */
+// file with BMM probabilities
+// omit .conds and .probs filename extensions
 char* Global::markovModelFile = NULL;
-/*
- * Markov model size
- */
+// length of Markov model
 int Global::markovModelLength = 0;
 
 /*
- * Parameters to initialize models from XXmotif results. Parameters
- * bindingSiteFile and markovModelFile must not be provided simultaneously
- * */
+ * Options to initialize one or more BMMs from XXmotif PWMs
+ */
 
-/*
- * number of one or more XXmotif models in the ranking used to initialize Markov
- * models. The remaining parameters available to choose models from XXmotif
- * results are ignored
- */
-std::vector<int> Global::nrModels;
-/*
- * min. number of XXmotif PWMs used to initialize Markov models. Independent
- * on pValueThreshold and minOccurrence
- */
+// minimum number of PWMs
+// options pValueThreshold and minOccurrence are ignored
 int Global::minModels = 1;
-/*
- * max. number of XXmotif models used to initialize Markov models
- */
+// maximum number of PWMs
 int Global::maxModels = std::numeric_limits<int>::max();
-/*
- * max. p-value of XXmotif models used to initialize Markov models. Not applied
- * to min. number of models
- */
+// maximum p-value of PWMs
+// filter is not applied to the top minimum number of PWMs (minModels)
 double Global::pValueThreshold = 1.0;
-/*
- * min. fraction of sequences containing a binding site instance. Not applied
- * to min. number of models
- */
+// minimum fraction of sequences that contain the motif
+// filter is not applied to the top minimum number of PWMs (minModels)
 float Global::minOccurrence = 0.05f;
-/*
- * add columns to the left and right of XXmotif models used to initialize Markov
- * models
- */
-std::vector<int> Global::addColumns( 2, 0 );
-/*
- * use model-specific specificity factor by calculating the percentage of
- * positive sequences containing a corresponding binding site instance
- */
+// PWM ranks in XXmotif results
+// former options to initialize BMMs from PWMs are ignored
+std::vector<int> Global::nrModels;
+
+// set the prior probability for a positive sequence to contain a motif to
+//   the fraction of sequences that contain a binding site instance that
+//   XXmotif used to build the PWM
+// option only works for a single PWM
 bool Global::msq = false;
 
 /*
- * Markov model parameters
- * */
-
-/*
- * Markov model order
+ * Options for (inhomogeneous) motif BMMs
  */
+
+// order
 int Global::modelOrder = 2;
-/*
- * order-specific prior strength. Order k fixes vector size to k+1.
- */
+// order-specific prior strength
+// order k fixes vector size to k+1
 std::vector<float> Global::alpha( modelOrder+1, 1.0f );
-/*
- * calculate order-specific alphas according to beta x gamma^(k-1)
- * (for k > 0).
- */
+// calculate order-specific alphas according to beta x gamma^(k-1) (for k > 0)
 float Global::beta = 20.0f;
-/*
- * calculate order-specific alphas according to beta x gamma^(k-1)
- * (for k > 0).
- */
+// calculate order-specific alphas according to beta x gamma^(k-1) (for k > 0)
 float Global::gamma = 3.0f;
-
-/*
- * learn hyper parameter alpha during interpolation of markov models
- */
-bool Global::learnHyperParameter = true;
-/*
- * flag in order to print output for debugging the alpha learning part only
- */
-bool Global::debugAlphalearning = true;
-/*
- *  whether or not to use position specific alhpa's
- */
+// use position-specific alphas
 bool Global::positionSpecificAlphas = false;
-
-/*
- * Markov model pseudo-counts factor(s). Markov model order k fixes vector size
- * to k+1
- */
-//std::vector<float> Global::eta( modelOrder+1, 90.0f );
-/*
- * interpolate between higher- and lower-order probabilities
- */
+// calculate prior probabilities from lower-order probabilities instead of
+//   background frequencies of mononucleotides
 bool Global::interpolate = true;
+// add uniformly initialized positions to the left/right of initial BMMs
+std::vector<int> Global::addColumns( 2, 0 );
 
 /*
- * Interpolated Markov background model parameters
- * */
-
-/*
- * Background model order
+ * Options for the (homogeneous) background BMM
  */
+
+// order
 int Global::modelOrderBg = 2;
-/*
- * Background model pseudo-counts factor
- */
+// prior strength
 float Global::alphaBg = 10.0f;
 
 /*
- * EM parameters
- * */
+ * EM options
+ */
 
-/*
- * initialize Markov model but skip EM phase
- */
-bool Global::noExpectationMaximizationPhase = false;
-/*
- * specificity factor approximates the percentage of sequences contributing to
- * the Markov model
- */
+// prior probability for a positive sequence to contain a motif
 float Global::q = 0.9f;
 float Global::qmax = 0.99999f;
-/*
- * EM convergence parameter
- */
+// the EM algorithm is deemed to be converged when the sum over the absolute
+//   differences in BMM probabilities from successive EM rounds is smaller than
+//   epsilon
 float Global::epsilon = 0.001f;
-/*
- * likelihood or max. order model parameter EM convergence
- */
+// the EM algorithm is deemed to be converged when the likelihood converges
 bool Global::likelihoodConvergence = false;
-/*
- * max. number of EM iterations
- */
+// limit the number of EM iterations
 int Global::maxEMIterations = std::numeric_limits<int>::max();
-/*
- * update interpolated Markov model probabilities with last EM iteration's
- * pseudo-counts
- */
+// initialize BMMs only
+bool Global::noExpectationMaximizationPhase = false;
+
+// optimize alphas
+bool Global::learnHyperParameter = true;
+// verbose printouts to debug alpha learning code
+bool Global::debugAlphalearning = true;
+
+// calculate BMM probabilities using pseudocounts from the previous EM iteration
 bool Global::lastCondsPseudoCounts = false;
-/*
- * calculate 0th-order interpolated Markov model pseudo-counts from initial
- * 0th-order probabilities
- */
-//bool Global::monoProbsPseudoCounts = false;
-/*
- * calculate 0th-order interpolated Markov model pseudo-counts from initial
- * 0th-order probabilities using 0th-order pseudo-counts factor N * q *
- * alphaZeroFactor
- */
+// calculate 0'th-order BMM probabilities using pseudocounts calculated from
+//   initial 0'th-order BMM probabilities
+bool Global::monoProbsPseudoCounts = false;
+// calculate 0'th-order BMM probabilities using pseudocounts calculated from
+//   initial 0'th-order BMM probabilities and alpha = N * q * alphaZeroFactor
 float Global::alphaZeroFactor = 5.0f;
 
 /*
- * Weighting parameters
- * */
+ * Options for weighting positive sequences
+ */
+
+// file with intensities for positive sequences (one intensity per line) used to
+//   weight sequences in the EM algorithm
+// the order of intensities must conform to the order of positive sequences
+//   higher intensities produce higher sequence weights
+char* Global::sequenceIntsFile = NULL;
+// use intensities to initialize BMMs from weighted instances of XXmotif
+bool Global::initInts = false;
+// use intensity ranks instead of intensities to calculate weights
+bool Global::rankWeighting = false;
+// the quantile of intensities (or ranks) that defines the background intensity
+//   (rank) used to translate intensities (ranks) into weights
+// the weight of sequences with intensities (ranks) below (above) the background
+//   intensity (rank) is set to zero
+float Global::backgroundQuantile = 0.0f;
+// the intensity that defines the background intensity used to translate
+//   intensities into weights
+// the weight of sequences with intensities below the background intensity is
+//   set to zero
+float Global::backgroundIntensity = std::numeric_limits<float>::min();
+// the rank that defines the background rank used to translate ranks into
+//   weights
+// the weight of sequences with ranks above the background rank is set to zero
+float Global::backgroundRank = std::numeric_limits<float>::max();
 
 /*
- * intensity or significance values for positive sequences. The higher the
- * values the higher the weights
+ * Options for weighting binding sites
  */
-char* Global::sequenceIntsFile = NULL;
-/*
- * parameter to initialize models from XXmotif results by weighting instances
- * with corresponding sequence weigths. Option --sequenceIntsFile must be
- * provided simultaneously. Options --bindingSiteFile and --markovModelFile must
- * not be provided simultaneously
- */
-bool Global::initInts = false;
-/*
- * rank-based weighting. Defaults to intensity-based weighting
- */
-bool Global::rankWeighting = false;
-/*
- * quantile to estimate the background intensity value (or rank). Sequences
- * having their intensity value (rank) below (above) the background intensity
- * value (rank) get assigned to weight zero. Defaults to 0
- */
-float Global::backgroundQuantile = 0.0f;
-/*
- * background intensity value. Sequences having their intensity value below the
- * background intensity value get assigned to weight zero. Defaults to the min.
- * intensity value
- */
-float Global::backgroundIntensity = std::numeric_limits<float>::min();
-/*
- * background intensity rank. Sequences having their intensity rank above the
- * background intensity rank get assigned to weight zero. Defaults to the max.
- * rank
- */
-float Global::backgroundRank = std::numeric_limits<float>::max();
-/*
- * intensity or significance values for binding site sequences. The higher the
- * values the higher the weights. Parameter bindingSiteFile must be provided
- * simultaneously
- */
+
+// file with intensities for binding site sequences (one per line) used to
+//   initialize BMMs from weighted binding sites
+// the order of intensities must conform to the order of sequences in the
+//   binding sites file
+// higher intensities produce higher weights
 char* Global::bindingSiteIntsFile = NULL;
-/*
- * binding site rank-based weighting. Defaults to intensity-based weighting
- */
+// use intensity ranks instead of intensities to calculate weights
 bool Global::bindingSiteRankWeighting = false;
-/*
- * quantile to estimate the background intensity value (or rank). Binding sites
- * having their intensity value (rank) below (above) the background intensity
- * value (rank) get assigned to weight zero. Defaults to 0
- */
+// the quantile of intensities (or ranks) that defines the background intensity
+//   (rank) used to translate intensities (ranks) into weights
+// the weight of binding sites with intensities (ranks) below (above) the
+//   background intensity (rank) is set to zero
 float Global::bindingSiteBackgroundQuantile = 0.0f;
-/*
- * background intensity value. Binding sites having their intensity value below
- * the background intensity value get assigned to weight zero. Defaults to the
- * min. binding site intensity value
- */
+// the intensity that defines the background intensity used to translate
+//   intensities into weights
+// the weight of binding sites with intensities below the background intensity
+//   is set to zero
 float Global::bindingSiteBackgroundIntensity = std::numeric_limits<float>::min();
-/*
- * background intensity rank. Binding sites having their intensity rank above
- * the background intensity rank get assigned to weight zero. Defaults to the
- * max. binding site rank
- */
+// the rank that defines the background rank used to translate ranks into
+//   weights
+// the weight of binding sites with ranks above the background rank is set to
+//   zero
 float Global::bindingSiteBackgroundRank =std::numeric_limits<float>::max();
 
 /*
- * Scoring parameters
- * */
+ * Options to score sequences
+ */
 
-/*
- * evaluate model(s) on training sequences
- */
+// score positive (training) sequences with optimized BMMs
 bool Global::testPosSequences = false;
-/*
- * evaluate model(s) on background sequences
- */
+// score background (training) sequences with optimized BMMs
 bool Global::testNegSequences = false;
-/*
- * evaluate model(s) on sequences in FASTA format. Specify one or more files.
- * Sequence lengths may differ
- */
+// score test sequences with optimized BMMs
+// test sequences can be provided in a single or multiple FASTA files
 std::vector<std::string> Global::testSequenceFile;
-/*
- * evaluate PWM model(s) used to initialize Markov model(s) on test sequences
- */
+// score sequences with XXmotif PWMs
 bool Global::evaluatePWMs = false;
-/*
- * calculate log probabilities instead of log likelihood ratios
- */
+// calculate log instead of log-odds scores
 bool Global::logProbs = false;
 
 /*
- * Output parameters
- * */
+ * Output options
+ */
 
-/*
- * save Markov models after initialization to file
- */
+// write initialized BMM(s) to disk
 bool Global::saveInitModels = false;
-/*
- * save Markov models after EM phase to file
- */
+// write optimized BMM(s) to disk
 bool Global::saveModels = false;
-/*
- * save EM iteration's sequence likelihoods and positional odds to file
- */
+// write sequence likelihoods and positional odds scores to disk after each EM
+//   iteration
 bool Global::saveExpectationMaximizationLikelihoods = false;
-/*
- * save EM iteration's Markov models to file
- */
+// write BBMs to disk after each EM iteration
 bool Global::saveExpectationMaximizationModels = false;
-/*
- * verbose printouts
- */
+// verbose terminal printouts
 bool Global::verbose = false;
 
 /*
- * Internal parameters
+ * BaMM!motif variables
  */
 
-/*
- * monomer background frequencies
- */
+// monomer background frequencies
 double* Global::freqs = NULL;
-/*
- * calculate background probabilities for k-mers with gaps. Gaps are mandatory
- * in order to initialize from XXmotif's models
- */
+// calculate background probabilities for k-mers with gaps
+// gaps are mandatory in order to initialize from XXmotif PWMs
 bool Global::gaps = true;
-/*
- * list of sequences to evaluate model(s)
- */
+// list of test sequences to score
 std::list<ss_type> Global::testSet;
 
 Global::Global( int argc, char *argv[] ){
@@ -434,8 +336,7 @@ Global::Global( int argc, char *argv[] ){
 		 // BaMMmotif
 		printHelp();
 	}
-	if( argc == 2 && ( strcmp( argv[1], "-h" ) == 0 || strcmp( argv[1], "--help"
-			                                                 ) == 0 ) ){
+	if( argc == 2 && ( strcmp( argv[1], "-h" ) == 0 || strcmp( argv[1], "--help" ) == 0 ) ){
 		// BaMMmotif -h
 		// BaMMmotif --help
 		printHelp();
@@ -904,7 +805,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 		ops >> OptionPresent( "XX-localizationRanking", positionalProbsRanking );
 	}
 
-	if( em ){ // default
+	if( em ){ // true
 		ops >> OptionPresent( "msq", msq );
 		if( ops >> OptionPresent( "nonBayesian" ) ){
 			interpolate = false;
@@ -1208,21 +1109,15 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				modelOrder = PWM_LENGTH - 1;
 			}
 
-			// number of one or more models in the ranking to pursue
 			if( ops >> OptionPresent( "rankPWMs" ) ){
 				ops >> Option( "rankPWMs", nrModels );
 				std::sort( nrModels.begin(), nrModels.end() );
 			}
-			// min. number of models to pursue
 			ops >> Option( "minPWMs", minModels );
-			// max. number of models to pursue
 			ops >> Option( "maxPWMs", maxModels );
-			// max. p-value of models
 			ops >> Option( "maxPValue", pValueThreshold );
 			pValueThreshold = log( pValueThreshold );
-			// min. percentage of sequences containing a binding site instance
 			ops >> Option( "minOccurrence", minOccurrence );
-			// add columns (left, right) to models
 			if( ops >> OptionPresent( "extend" ) ){
 				addColumns.clear();
 				ops >> Option( "extend", addColumns );
@@ -1368,10 +1263,10 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			if( ops >> OptionPresent( 'g', "gamma" ) ){
 				ops >> Option( 'g', "gamma", gamma );
 			}
+			alpha.resize( modelOrder+1, alpha.back() );
 			if( modelOrder > 0 ){
-				for( unsigned int i=1; i <= alpha.size(); i++ ){
-					alpha[i] = beta * powf( gamma,
-							   static_cast<float>( modelOrder )-1.0f );
+				for( unsigned int i=1; i < alpha.size(); i++ ){
+					alpha[i] = beta * powf( gamma, static_cast<float>( i )-1.0f );
 				}
 			}
 		}
@@ -1528,10 +1423,9 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 
 	if( em && verbose ){
 
-		std::cout << std::endl;
 		std::cout << " ____________________" << std::endl;
 		std::cout << "|                    |" << std::endl;
-		std::cout << "| BaMM!motif setting |" << std::endl;
+		std::cout << "| PARAMETER SETTINGS |" << std::endl;
 		std::cout << "|____________________|" << std::endl;
 		std::cout << std::endl;
 		std::cout << "sequence file" << "\t\t\t\t" << name << std::endl;
@@ -1654,7 +1548,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	}
 
 	if( ops.options_remain() ){
-		std::cerr << "Unknown options remaining..." << std::endl;
+		std::cerr << "Error: Unknown options remaining..." << std::endl;
 		return false;
 	}
 
