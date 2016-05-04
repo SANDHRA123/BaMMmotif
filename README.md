@@ -1,5 +1,19 @@
 # BaMM!motif
 
+**Ba**yesian **M**arkov **M**odel **motif** discovery software.
+
+## Requirements
+To compile from source you need
+
+  * a recent C compiler (we suggest GCC 4.4 or later)
+  * [CMake](http://cmake.org/) 2.8 or later
+
+## How to compile BaMM!motif?
+
+      cmake .
+      make
+
+## How to use BaMM!motif from the command line?
 SYNOPSIS
 
       BaMMmotif DIRPATH FILEPATH [OPTIONS]
@@ -16,7 +30,7 @@ DESCRIPTION
 
 OPTIONS
 
-  Sequence options
+Sequence options
 
       --negSequenceSet <FILEPATH>
           FASTA file with negative/background sequences used to learn the
@@ -190,3 +204,6 @@ OPTIONS
 
       -h, --help
           Printout this help.
+
+## License
+BaMM!motif is released under the GNU General Public License v3 or later. See LICENSE for more details.
