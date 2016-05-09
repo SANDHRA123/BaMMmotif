@@ -215,9 +215,9 @@ int Global::maxEMIterations = std::numeric_limits<int>::max();
 bool Global::noExpectationMaximizationPhase = false;
 
 // optimize alphas
-bool Global::learnHyperParameter = true;
+bool Global::learnHyperParameter = false;
 // verbose printouts to debug alpha learning code
-bool Global::debugAlphalearning = true;
+bool Global::debugAlphalearning = false;
 
 // calculate BMM probabilities using pseudocounts from the previous EM iteration
 bool Global::lastCondsPseudoCounts = false;
