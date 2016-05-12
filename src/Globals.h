@@ -205,7 +205,7 @@ public:
 	static int			minMatchPositions;		// minimum number of non-wildcard motif positions
 	static int			maxMatchPositions;		// maximum number of non-wildcard motif positions
 
-	// homogeneous background BMM options
+	// homogeneous background BaMM options
 	static int order;							// model order
 	static float pseudocountsFactor;			// prior strength
 	static float countsOffset;					// counts offset
@@ -217,7 +217,7 @@ public:
 	static bool	em;
 
 	/*
-	 * Options to initialize a single BMM from file
+	 * Options to initialize a single BaMM from file
 	 */
 
 	// file with binding sites of equal length
@@ -225,14 +225,14 @@ public:
 	static char* bindingSiteFile;
 	// length of binding sites
 	static int bindingSiteLength;
-	// file with BMM probabilities
+	// file with BaMM probabilities
 	// omit .conds and .probs filename extensions
 	static char* markovModelFile;
 	// length of Markov model
 	static int markovModelLength;
 
 	/*
-	 * Options to initialize one or more BMMs from XXmotif PWMs
+	 * Options to initialize one or more BaMMs from XXmotif PWMs
 	 */
 
 	// minimum number of PWMs
@@ -247,7 +247,7 @@ public:
 	// filter is not applied to the top minimum number of PWMs (minModels)
 	static float minOccurrence;
 	// PWM ranks in XXmotif results
-	// former options to initialize BMMs from PWMs are ignored
+	// former options to initialize BaMMs from PWMs are ignored
 	static std::vector<int> nrModels;
 
 	// set the prior probability for a positive sequence to contain a motif to
@@ -257,7 +257,7 @@ public:
 	static bool msq;
 
 	/*
-	 * Options for (inhomogeneous) motif BMMs
+	 * Options for (inhomogeneous) motif BaMMs
 	 */
 
 	// order
@@ -273,11 +273,11 @@ public:
     // calculate prior probabilities from lower-order probabilities instead of
     //   background frequencies of mononucleotides
 	static bool interpolate;
-	// add uniformly initialized positions to the left/right of initial BMMs
+	// add uniformly initialized positions to the left/right of initial BaMMs
 	static std::vector<int> addColumns;
 
 	/*
-	 * Options for the (homogeneous) background BMM
+	 * Options for the (homogeneous) background BaMM
 	 */
 
 	// order
@@ -293,14 +293,14 @@ public:
 	static float q;
 	static float qmax;
 	// the EM algorithm is deemed to be converged when the sum over the absolute
-	//   differences in BMM probabilities from successive EM rounds is smaller
+	//   differences in BaMM probabilities from successive EM rounds is smaller
 	//   than epsilon
 	static float epsilon;
 	// the EM algorithm is deemed to be converged when the likelihood converges
 	static bool likelihoodConvergence;
 	// limit the number of EM iterations
 	static int maxEMIterations;
-    // initialize BMMs only
+    // initialize BaMMs only
 	static bool noExpectationMaximizationPhase;
 
 	// optimize alphas
@@ -308,14 +308,15 @@ public:
     // verbose printouts to debug alpha learning code
     static bool debugAlphalearning;
 
-    // calculate BMM probabilities using pseudocounts from the previous EM
+    // calculate BaMM probabilities using pseudocounts from the previous EM
     //   iteration
 	static bool lastCondsPseudoCounts;
-	// calculate 0'th-order BMM probabilities using pseudocounts calculated from
-	//   initial 0'th-order BMM probabilities
+	// calculate 0'th-order BaMM probabilities using pseudocounts calculated
+	//   from initial 0'th-order BaMM probabilities
 	static bool monoProbsPseudoCounts;
-	// calculate 0'th-order BMM probabilities using pseudocounts calculated from
-	//   initial 0'th-order BMM probabilities and alpha = N*q*alphaZeroFactor
+	// calculate 0'th-order BaMM probabilities using pseudocounts calculated
+	//   from initial 0'th-order BaMM probabilities and
+	//   alpha = N*q*alphaZeroFactor
 	static float alphaZeroFactor;
 
 	/*
@@ -327,7 +328,7 @@ public:
 	// the order of intensities must conform to the order of positive sequences
 	// higher intensities produce higher sequence weights
 	static char* sequenceIntsFile;
-	// use intensities to initialize BMMs from weighted instances of XXmotif
+	// use intensities to initialize BaMMs from weighted instances of XXmotif
 	static bool initInts;
 	// use intensity ranks instead of intensities to calculate weights
 	static bool rankWeighting;
@@ -352,7 +353,7 @@ public:
 	 */
 
 	// file with intensities for binding site sequences (one per line) used to
-	//   initialize BMMs from weighted binding sites
+	//   initialize BaMMs from weighted binding sites
 	// the order of intensities must conform to the order of sequences in the
 	//   binding sites file
 	// higher intensities produce higher weights
@@ -379,11 +380,11 @@ public:
 	 * Options to score sequences
 	 */
 
-	// score positive (training) sequences with optimized BMMs
+	// score positive (training) sequences with optimized BaMMs
 	static bool testPosSequences;
-	// score background (training) sequences with optimized BMMs
+	// score background (training) sequences with optimized BaMMs
 	static bool testNegSequences;
-	// score test sequences with optimized BMMs
+	// score test sequences with optimized BaMMs
 	// test sequences can be provided in a single or multiple FASTA files
 	static std::vector<std::string> testSequenceFile;
 	// score sequences with XXmotif PWMs
@@ -395,9 +396,9 @@ public:
 	 * Output options
 	 */
 
-	// write initialized BMM(s) to disk
+	// write initialized BaMM(s) to disk
 	static bool saveInitModels;
-	// write optimized BMM(s) to disk
+	// write optimized BaMM(s) to disk
 	static bool saveModels;
 	// write sequence likelihoods and positional odds scores to disk after each
 	//   EM iteration

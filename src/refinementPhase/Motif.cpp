@@ -1509,7 +1509,7 @@ void Motif::initHoMotifWithBindingSites( char* bindingSiteFile ){
 	}
 
 	if( Global::interpolate ){
-		// calculate BMM probabilities from counts
+		// calculate BaMM probabilities from counts
 		calculateInterpolatedMarkovModelProbs( false, false );
 	} else{
 		// calculate MM probabilities from counts
@@ -1543,7 +1543,7 @@ void Motif::initHoMotifWithInterpolatedMarkovModel( char* baseFileName ){
 
 	str << baseFileName << ".conds";
 	if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
-		fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
+		fprintf( stderr, "Error: Cannot open file %s with BaMM probabilities\n", str.str().c_str() );
 		exit( -1 );
 	}
 
@@ -1569,7 +1569,7 @@ void Motif::initHoMotifWithInterpolatedMarkovModel( char* baseFileName ){
 	str << baseFileName << ".probs";
 
 	if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
-		fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
+		fprintf( stderr, "Error: Cannot open file %s with BaMM probabilities\n", str.str().c_str() );
 		exit( -1 );
 	}
 

@@ -6,9 +6,9 @@
 
 #include "backgroundDistribution.h"
 #include "Globals.h"
-#include "NullModel.h" // homogeneous background BMM used in XXmotif
+#include "NullModel.h" // homogeneous background BaMM used in XXmotif
 #include "em/hoUtils.h"
-#include "em/hoNullModel.h" // homogeneous background BMM used in BaMM!motif
+#include "em/hoNullModel.h" // homogeneous background BaMM used in BaMM!motif
 #include "refinementPhase/Motif.h"
 
 using GetOpt::GetOpt_pp;
@@ -115,7 +115,7 @@ std::string Global::nnetFilename;
 bool 		Global::DEBUG = false;
 std::string Global::argv0;
 
-// homogeneous background BMM options
+// homogeneous background BaMM options
 int Global::order = 2;						// model order
 float Global::pseudocountsFactor = 10.0f;	// prior strength
 float Global::countsOffset = 0.0f;			// counts offset
@@ -127,7 +127,7 @@ float Global::countsOffset = 0.0f;			// counts offset
 bool Global::em = true;
 
 /*
- * Options to initialize a single BMM from file
+ * Options to initialize a single BaMM from file
  */
 
 // file with binding sites of equal length
@@ -135,14 +135,14 @@ bool Global::em = true;
 char* Global::bindingSiteFile = NULL;
 // length of binding sites
 int Global::bindingSiteLength = 30;
-// file with BMM probabilities
+// file with BaMM probabilities
 // omit .conds and .probs filename extensions
 char* Global::markovModelFile = NULL;
 // length of Markov model
 int Global::markovModelLength = 0;
 
 /*
- * Options to initialize one or more BMMs from XXmotif PWMs
+ * Options to initialize one or more BaMMs from XXmotif PWMs
  */
 
 // minimum number of PWMs
@@ -157,7 +157,7 @@ double Global::pValueThreshold = 1.0;
 // filter is not applied to the top minimum number of PWMs (minModels)
 float Global::minOccurrence = 0.05f;
 // PWM ranks in XXmotif results
-// former options to initialize BMMs from PWMs are ignored
+// former options to initialize BaMMs from PWMs are ignored
 std::vector<int> Global::nrModels;
 
 // set the prior probability for a positive sequence to contain a motif to
@@ -167,7 +167,7 @@ std::vector<int> Global::nrModels;
 bool Global::msq = false;
 
 /*
- * Options for (inhomogeneous) motif BMMs
+ * Options for (inhomogeneous) motif BaMMs
  */
 
 // order
@@ -184,11 +184,11 @@ bool Global::positionSpecificAlphas = false;
 // calculate prior probabilities from lower-order probabilities instead of
 //   background frequencies of mononucleotides
 bool Global::interpolate = true;
-// add uniformly initialized positions to the left/right of initial BMMs
+// add uniformly initialized positions to the left/right of initial BaMMs
 std::vector<int> Global::addColumns( 2, 0 );
 
 /*
- * Options for the (homogeneous) background BMM
+ * Options for the (homogeneous) background BaMM
  */
 
 // order
@@ -204,14 +204,14 @@ float Global::alphaBg = 10.0f;
 float Global::q = 0.9f;
 float Global::qmax = 0.99999f;
 // the EM algorithm is deemed to be converged when the sum over the absolute
-//   differences in BMM probabilities from successive EM rounds is smaller than
+//   differences in BaMM probabilities from successive EM rounds is smaller than
 //   epsilon
 float Global::epsilon = 0.001f;
 // the EM algorithm is deemed to be converged when the likelihood converges
 bool Global::likelihoodConvergence = false;
 // limit the number of EM iterations
 int Global::maxEMIterations = std::numeric_limits<int>::max();
-// initialize BMMs only
+// initialize BaMMs only
 bool Global::noExpectationMaximizationPhase = false;
 
 // optimize alphas
@@ -219,13 +219,13 @@ bool Global::learnHyperParameter = false;
 // verbose printouts to debug alpha learning code
 bool Global::debugAlphalearning = false;
 
-// calculate BMM probabilities using pseudocounts from the previous EM iteration
+// calculate BaMM probabilities using pseudocounts from the previous EM iteration
 bool Global::lastCondsPseudoCounts = false;
-// calculate 0'th-order BMM probabilities using pseudocounts calculated from
-//   initial 0'th-order BMM probabilities
+// calculate 0'th-order BaMM probabilities using pseudocounts calculated from
+//   initial 0'th-order BaMM probabilities
 bool Global::monoProbsPseudoCounts = false;
-// calculate 0'th-order BMM probabilities using pseudocounts calculated from
-//   initial 0'th-order BMM probabilities and alpha = N * q * alphaZeroFactor
+// calculate 0'th-order BaMM probabilities using pseudocounts calculated from
+//   initial 0'th-order BaMM probabilities and alpha = N * q * alphaZeroFactor
 float Global::alphaZeroFactor = 5.0f;
 
 /*
@@ -237,7 +237,7 @@ float Global::alphaZeroFactor = 5.0f;
 // the order of intensities must conform to the order of positive sequences
 //   higher intensities produce higher sequence weights
 char* Global::sequenceIntsFile = NULL;
-// use intensities to initialize BMMs from weighted instances of XXmotif
+// use intensities to initialize BaMMs from weighted instances of XXmotif
 bool Global::initInts = false;
 // use intensity ranks instead of intensities to calculate weights
 bool Global::rankWeighting = false;
@@ -261,7 +261,7 @@ float Global::backgroundRank = std::numeric_limits<float>::max();
  */
 
 // file with intensities for binding site sequences (one per line) used to
-//   initialize BMMs from weighted binding sites
+//   initialize BaMMs from weighted binding sites
 // the order of intensities must conform to the order of sequences in the
 //   binding sites file
 // higher intensities produce higher weights
@@ -288,11 +288,11 @@ float Global::bindingSiteBackgroundRank =std::numeric_limits<float>::max();
  * Options to score sequences
  */
 
-// score positive (training) sequences with optimized BMMs
+// score positive (training) sequences with optimized BaMMs
 bool Global::testPosSequences = false;
-// score background (training) sequences with optimized BMMs
+// score background (training) sequences with optimized BaMMs
 bool Global::testNegSequences = false;
-// score test sequences with optimized BMMs
+// score test sequences with optimized BaMMs
 // test sequences can be provided in a single or multiple FASTA files
 std::vector<std::string> Global::testSequenceFile;
 // score sequences with XXmotif PWMs
@@ -304,9 +304,9 @@ bool Global::logProbs = false;
  * Output options
  */
 
-// write initialized BMM(s) to disk
+// write initialized BaMM(s) to disk
 bool Global::saveInitModels = false;
-// write optimized BMM(s) to disk
+// write optimized BaMM(s) to disk
 bool Global::saveModels = false;
 // write sequence likelihoods and positional odds scores to disk after each EM
 //   iteration
@@ -477,8 +477,8 @@ void Global::printHelp(){
 	printf( "  Sequence options\n" );
 	printf( "      --negSequenceSet <FILEPATH>\n"
 			"          FASTA file with negative/background sequences used to learn the\n"
-			"          (homogeneous) background BMM. If not specified, the background BMM is\n"
-			"          learned from the positive sequences.\n\n" );
+			"          (homogeneous) background BaMM. If not specified, the background BaMM\n"
+			"          is learned from the positive sequences.\n\n" );
 	printf( "      --reverseComp\n"
 			"          Search motifs on both strands (positive sequences and reverse\n"
 			"          complements). This option is e.g. recommended when using sequences\n"
@@ -489,14 +489,14 @@ void Global::printHelp(){
 				"          read in all sequences.\n\n");
 	}
 
-	printf( "  Options to initialize a single BMM from file\n" );
+	printf( "  Options to initialize a single BaMM from file\n" );
 	printf( "      --bindingSiteFile <FILEPATH>\n"
 			"          File with binding sites of equal length (one per line).\n\n" );
 	printf( "      --markovModelFile <FILEPATH>\n"
-			"          File with BMM probabilities as obtained from BaMM!motif (omit\n"
+			"          File with BaMM probabilities as obtained from BaMM!motif (omit\n"
 			"          filename extension).\n\n" );
 
-	printf( "  Options to initialize one or more BMMs from XXmotif PWMs\n" );
+	printf( "  Options to initialize one or more BaMMs from XXmotif PWMs\n" );
 	printf( "      --minPWMs <INTEGER>\n"
 			"          Minimum number of PWMs. The options --maxPValue and --minOccurrence\n"
 			"          are ignored. The default is 1.\n\n" );
@@ -510,7 +510,7 @@ void Global::printHelp(){
 			"          not applied to the top minimum number of PWMs (see --minPWMs). The\n"
 			"          default is 0.05.\n\n" );
 	printf( "      --rankPWMs <INTEGER> [<INTEGER>...]\n"
-			"          PWM ranks in XXmotif results. The former options to initialize BMMs\n"
+			"          PWM ranks in XXmotif results. The former options to initialize BaMMs\n"
 			"          from PWMs are ignored.\n\n" );
 	if( developerHelp ){
 		printf( "      --msq (*)\n"
@@ -521,7 +521,7 @@ void Global::printHelp(){
 				"          PWM.\n\n" );
 	}
 
-	printf( "  Options for (inhomogeneous) motif BMMs\n" );
+	printf( "  Options for (inhomogeneous) motif BaMMs\n" );
 	printf( "      -k <INTEGER>\n"
 			"          Order. The default is 2.\n\n" );
 	printf( "      -a|--alpha <FLOAT> [<FLOAT>...]\n"
@@ -534,10 +534,10 @@ void Global::printHelp(){
 			"          Calculate order-specific alphas according to beta x gamma^(k-1) (for\n"
 			"          k > 0). The default is 3.0.\n\n" );
 	printf( "      --extend <INTEGER>{1,2}\n"
-			"          Extend BMMs by adding uniformly initialized positions to the left\n"
-			"          and/or right of initial BMMs. Invoking e.g. with --extend 0 2 adds\n"
-			"          two positions to the right of initial BMMs. Invoking with --extend 2\n"
-			"          adds two positions to both sides of initial BMMs. By default, BMMs\n"
+			"          Extend BaMMs by adding uniformly initialized positions to the left\n"
+			"          and/or right of initial BaMMs. Invoking e.g. with --extend 0 2 adds\n"
+			"          two positions to the right of initial BaMMs. Invoking with --extend 2\n"
+			"          adds two positions to both sides of initial BaMMs. By default, BaMMs\n"
 			"          are not being extended.\n\n" );
 	if( developerHelp ){
 		printf( "      --nonBayesian (*)\n"
@@ -545,7 +545,7 @@ void Global::printHelp(){
 				"          mononucleotides instead of lower-order probabilities.\n\n" );
 	}
 
-	printf( "  Options for the (homogeneous) background BMM\n" );
+	printf( "  Options for the (homogeneous) background BaMM\n" );
 	printf( "      -K <INTEGER>\n"
 			"          Order. The default is 2.\n\n" );
 	printf( "      -A|--Alpha <FLOAT>\n"
@@ -557,13 +557,13 @@ void Global::printHelp(){
 			"          default is 0.9.\n\n" );
 	printf( "      -e|--epsilon <FLOAT>\n"
 			"          The EM algorithm is deemed to be converged when the sum over the\n"
-			"          absolute differences in BMM probabilities from successive EM rounds\n"
+			"          absolute differences in BaMM probabilities from successive EM rounds\n"
 			"          is smaller than epsilon. The default is 0.001.\n\n" );
 	if( developerHelp ){
 		printf( "      --maxEMIterations <INTEGER> (*)\n"
 				"          Limit the number of EM iterations.\n\n" );
 		printf( "      --noEM (*)\n"
-				"          Initialize BMMs only.\n\n" );
+				"          Initialize BaMMs only.\n\n" );
 	}
 
 	printf( "  XXmotif options\n" );
@@ -589,11 +589,11 @@ void Global::printHelp(){
 	printf( "      --XX-noLengthOptimPWMs\n"
 			"          Omit the length optimization of PWMs.\n\n");
 	printf( "      --XX-K <INTEGER>\n"
-			"          Order of the (homogeneous) background BMM. The default is either 2\n"
+			"          Order of the (homogeneous) background BaMM. The default is either 2\n"
 			"          (when learned on positive sequences) or 8 (when learned on background\n"
 			"          sequences).\n\n" );
 	printf( "      --XX-A <FLOAT>\n"
-			"          Prior strength of the (homogeneous) background BMM. The default is\n"
+			"          Prior strength of the (homogeneous) background BaMM. The default is\n"
 			"          10.0.\n\n");
 	printf( "      --XX-jumpStartPatternStage <STRING>\n"
 			"          Jump-start pattern stage using an IUPAC pattern string.\n\n");
@@ -653,9 +653,9 @@ void Global::printHelp(){
 				"          weight sequences in the EM algorithm. The order of intensities must\n"
 				"          conform to the order of positive sequences. Higher intensities\n"
 				"          produce higher sequence weights.\n\n" );
-		printf( "      --useIntensitiesToInitBMMs\n"
-				"          Use intensities to initialize BMMs from weighted instances of XXmotif\n"
-				"          PWMs.\n\n" );
+		printf( "      --useIntensitiesToInitBaMMs\n"
+				"          Use intensities to initialize BaMMs from weighted instances of\n"
+				"          XXmotif PWMs.\n\n" );
 		printf( "      --useRanks\n"
 				"          Use intensity ranks instead of intensities to calculate weights.\n\n" );
 		printf( "      --backgroundQuantile <FLOAT>\n"
@@ -677,7 +677,7 @@ void Global::printHelp(){
 		printf( "  Options for weighting binding sites (*)\n" );
 		printf( "      --bindingSiteIntensities <FILEPATH>\n"
 				"          File with intensities for binding site sequences (one per line) used\n"
-				"          to initialize BMMs from weighted binding sites. The order of\n"
+				"          to initialize BaMMs from weighted binding sites. The order of\n"
 				"          intensities must conform to the order of sequences in the binding\n"
 				"          sites file. Higher intensities produce higher weights.\n\n" );
 		printf( "      --useBindingSiteRanks\n"
@@ -701,11 +701,11 @@ void Global::printHelp(){
 
 	printf( "  Options to score sequences\n" );
 	printf( "      --scorePosSequenceSet\n"
-			"          Score positive (training) sequences with optimized BMMs.\n\n" );
+			"          Score positive (training) sequences with optimized BaMMs.\n\n" );
 	printf( "      --scoreNegSequenceSet\n"
-			"          Score background (training) sequences with optimized BMMs.\n\n" );
+			"          Score background (training) sequences with optimized BaMMs.\n\n" );
 	printf( "      --scoreTestSequenceSet <FILEPATH> [<FILEPATH>...]\n"
-			"          Score test sequences with optimized BMMs. Test sequences can be\n"
+			"          Score test sequences with optimized BaMMs. Test sequences can be\n"
 			"          provided in a single or multiple FASTA files.\n\n" );
 	if( developerHelp ){
 		printf( "      --evaluatePWMs (*)\n"
@@ -715,15 +715,15 @@ void Global::printHelp(){
 	}
 
 	printf( "  Output options\n" );
-	printf( "      --saveInitBMMs\n"
-			"          Write initialized BMM(s) to disk.\n\n" );
-	printf( "      --saveBMMs\n"
-			"          Write optimized BMM(s) to disk.\n\n" );
+	printf( "      --saveInitBaMMs\n"
+			"          Write initialized BaMM(s) to disk.\n\n" );
+	printf( "      --saveBaMMs\n"
+			"          Write optimized BaMM(s) to disk.\n\n" );
 	if( developerHelp ){
 		printf( "      --saveEMLikelihoods (*)\n"
 				"          Write sequence likelihoods and positional odds scores to disk after\n"
 				"          each EM iteration.\n\n" );
-		printf( "      --saveEMBMMs (*)\n"
+		printf( "      --saveEMBaMMs (*)\n"
 				"          Write BBM(s) to disk after each EM iteration.\n\n" );
 	}
 	printf( "      --verbose\n"
@@ -811,9 +811,9 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			interpolate = false;
 		}
 		ops >> OptionPresent( "noEM", noExpectationMaximizationPhase );
-		ops >> OptionPresent( "useIntensitiesToInitBMMs", initInts );
-		ops >> OptionPresent( "saveInitBMMs", saveInitModels );
-		ops >> OptionPresent( "saveBMMs", saveModels );
+		ops >> OptionPresent( "useIntensitiesToInitBaMMs", initInts );
+		ops >> OptionPresent( "saveInitBaMMs", saveInitModels );
+		ops >> OptionPresent( "saveBaMMs", saveModels );
 		ops >> OptionPresent( "verbose", verbose );
 		ops >> OptionPresent( "learnAlpha", learnHyperParameter );
 		ops >> OptionPresent( "posAlpha", positionSpecificAlphas );
@@ -836,7 +836,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 	if( em ){
 		ops >> OptionPresent( "saveEMLikelihoods",
 							   saveExpectationMaximizationLikelihoods );
-		ops >> OptionPresent( "saveEMBMMs",
+		ops >> OptionPresent( "saveEMBaMMs",
 							   saveExpectationMaximizationModels );
 	}
 
@@ -1031,7 +1031,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			str << markovModelFile << ".conds";
 
 			if( ( fp = fopen( str.str().c_str(), "r" ) ) == NULL ){
-		        fprintf( stderr, "Error: Cannot open file %s with BMM probabilities\n", str.str().c_str() );
+		        fprintf( stderr, "Error: Cannot open file %s with BaMM probabilities\n", str.str().c_str() );
 		        exit( -1 );
 			}
 
@@ -1040,7 +1040,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 				; // skip leading blank lines
 			}
 			if( c == EOF ){
-				fprintf( stderr, "Error: Cannot find BMM probabilities in file %s\n", str.str().c_str() );
+				fprintf( stderr, "Error: Cannot find BaMM probabilities in file %s\n", str.str().c_str() );
 				exit( -1 );
 			}
 
@@ -1099,7 +1099,7 @@ bool Global::readCommandLineOptions( int argc, char *argv[] ){
 			}
 
 			if( markovModelLength > posSet->min_leng ){
-				fprintf( stderr, "Error: The BMM is longer than the positive sequences\n" );
+				fprintf( stderr, "Error: The BaMM is longer than the positive sequences\n" );
 				exit( -1 );
 			}
 
