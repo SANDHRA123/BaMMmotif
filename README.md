@@ -207,45 +207,63 @@ Sequence options
 
 ## BaMM flat file format
 
-BaMMs are written to flat file when invoking BaMM!motif with the output option --saveInitBaMMs and/or --saveBaMMs. In this case, BaMM!motif generates two files for each BaMM, one containing probabilities (filename extension *probs*), the other containing conditional probabilities (filename extension *conds*). The format is the same for both. While blank lines separate BaMM positions, lines *1* to *k+1* of each BaMM position contain the probabilities for order *0* to order *k*. For instance, the format for a BaMM of order *2* and length *W* is as follows:
+BaMMs are written to flat file when invoking BaMM!motif with the output option `--saveInitBaMMs` and/or `--saveBaMMs`. In this case, BaMM!motif generates three files for each (inhomogeneous) BaMM &ndash; one containing the probabilities (filename extension: probs), one containing the conditional probabilities (filename extension: conds), and one containing the background frequencies of mononucleotides in the positive sequences (file extension: freqs). The format is the same for the first two. While blank lines separate BaMM positions, lines 1 to *k*+1 of each BaMM position contain the (conditional) probabilities for order 0 to order *k*. For instance, the format for a BaMM of order 2 and length *W* is as follows:
 
-Filename extension *probs*
+Filename extension: probs
 
-    P<sub>1</sub>(A) P<sub>1</sub>(C) P<sub>1</sub>(G) P<sub>1</sub>(T)
-    P<sub>1</sub>(AA) P<sub>1</sub>(AC) P<sub>1</sub>(AG) P<sub>1</sub>(AT) P<sub>1</sub>(CA) P<sub>1</sub>(CC) P<sub>1</sub>(CG) ... P<sub>1</sub>(TT)
-    P<sub>1</sub>(AAA) P<sub>1</sub>(AAC) P<sub>1</sub>(AAG) P<sub>1</sub>(AAT) P<sub>1</sub>(ACA) P<sub>1</sub>(ACC) P<sub>1</sub>(ACG) ... P<sub>1</sub>(TTT)
+P<sub>1</sub>(A) P<sub>1</sub>(C) P<sub>1</sub>(G) P<sub>1</sub>(T)<br>
+P<sub>1</sub>(AA) P<sub>1</sub>(AC) P<sub>1</sub>(AG) P<sub>1</sub>(AT) P<sub>1</sub>(CA) P<sub>1</sub>(CC) P<sub>1</sub>(CG) ... P<sub>1</sub>(TT)<br>
+P<sub>1</sub>(AAA) P<sub>1</sub>(AAC) P<sub>1</sub>(AAG) P<sub>1</sub>(AAT) P<sub>1</sub>(ACA) P<sub>1</sub>(ACC) P<sub>1</sub>(ACG) ... P<sub>1</sub>(TTT)<br>
 
-    P<sub>2</sub>(A) P<sub>2</sub>(C) P<sub>2</sub>(G) P<sub>2</sub>(T)
-    P<sub>2</sub>(AA) P<sub>2</sub>(AC) P<sub>2</sub>(AG) P<sub>2</sub>(AT) P<sub>2</sub>(CA) P<sub>2</sub>(CC) P<sub>2</sub>CG) ... P<sub>2</sub>(TT)
-    P<sub>2</sub>(AAA) P<sub>2</sub>(AAC) P<sub>2</sub>(AAG) P<sub>2</sub>(AAT) P<sub>2</sub>(ACA) P<sub>2</sub>(ACC) P<sub>2</sub>(ACG) ... P<sub>2</sub>(TTT)
+P<sub>2</sub>(A) P<sub>2</sub>(C) P<sub>2</sub>(G) P<sub>2</sub>(T)<br>
+P<sub>2</sub>(AA) P<sub>2</sub>(AC) P<sub>2</sub>(AG) P<sub>2</sub>(AT) P<sub>2</sub>(CA) P<sub>2</sub>(CC) P<sub>2</sub>CG) ... P<sub>2</sub>(TT)<br>
+P<sub>2</sub>(AAA) P<sub>2</sub>(AAC) P<sub>2</sub>(AAG) P<sub>2</sub>(AAT) P<sub>2</sub>(ACA) P<sub>2</sub>(ACC) P<sub>2</sub>(ACG) ... P<sub>2</sub>(TTT)<br>
+...
 
-    .
-    .
-    .
+P<sub>W</sub>(A) P<sub>W</sub>(C) P<sub>W</sub>(G) P<sub>W</sub>(T)<br>
+P<sub>W</sub>(AA) P<sub>W</sub>(AC) P<sub>W</sub>(AG) P<sub>W</sub>(AT) P<sub>W</sub>(CA) P<sub>W</sub>(CC) P<sub>W</sub>CG) ... P<sub>W</sub>(TT)<br>
+P<sub>W</sub>(AAA) P<sub>W</sub>(AAC) P<sub>W</sub>(AAG) P<sub>W</sub>(AAT) P<sub>W</sub>(ACA) P<sub>W</sub>(ACC) P<sub>W</sub>(ACG) ... P<sub>W</sub>(TTT)<br>
 
-    P<sub>W</sub>(A) P<sub>W</sub>(C) P<sub>W</sub>(G) P<sub>W</sub>(T)
-    P<sub>W</sub>(AA) P<sub>W</sub>(AC) P<sub>W</sub>(AG) P<sub>W</sub>(AT) P<sub>W</sub>(CA) P<sub>W</sub>(CC) P<sub>W</sub>CG) ... P<sub>W</sub>(TT)
-    P<sub>W</sub>(AAA) P<sub>W</sub>(AAC) P<sub>W</sub>(AAG) P<sub>W</sub>(AAT) P<sub>W</sub>(ACA) P<sub>W</sub>(ACC) P<sub>W</sub>(ACG) ... P<sub>W</sub>(TTT)
+Filename extension: conds
 
-Filename extension *conds*
+P<sub>1</sub>(A) P<sub>1</sub>(C) P<sub>1</sub>(G) P<sub>1</sub>(T)<br>
+P<sub>1</sub>(A|A) P<sub>1</sub>(C|A) P<sub>1</sub>(G|A) P<sub>1</sub>(T|A) P<sub>1</sub>(A|C) P<sub>1</sub>(C|C) P<sub>1</sub>(G|C) ... P<sub>1</sub>(T|T)<br>
+P<sub>1</sub>(A|AA) P<sub>1</sub>(C|AA) P<sub>1</sub>(G|AA) P<sub>1</sub>(T|AA) P<sub>1</sub>(A|AC) P<sub>1</sub>(C|AC) P<sub>1</sub>(G|AC) ... P<sub>1</sub>(T|TT)<br>
 
-    P<sub>1</sub>(A) P<sub>1</sub>(C) P<sub>1</sub>(G) P<sub>1</sub>(T)
-    P<sub>1</sub>(A|A) P<sub>1</sub>(C|A) P<sub>1</sub>(G|A) P<sub>1</sub>(T|A) P<sub>1</sub>(A|C) P<sub>1</sub>(C|C) P<sub>1</sub>(G|C) ... P<sub>1</sub>(T|T)
-    P<sub>1</sub>(A|AA) P<sub>1</sub>(C|AA) P<sub>1</sub>(G|AA) P<sub>1</sub>(T|AA) P<sub>1</sub>(A|AC) P<sub>1</sub>(C|AC) P<sub>1</sub>(G|AC) ... P<sub>1</sub>(T|TT)
+P<sub>2</sub>(A) P<sub>2</sub>(C) P<sub>2</sub>(G) P<sub>2</sub>(T)<br>
+P<sub>2</sub>(A|A) P<sub>2</sub>(C|A) P<sub>2</sub>(G|A) P<sub>2</sub>(T|A) P<sub>2</sub>(A|C) P<sub>2</sub>(C|C) P<sub>2</sub>(G|C) ... P<sub>2</sub>(T|T)<br>
+P<sub>2</sub>(A|AA) P<sub>2</sub>(C|AA) P<sub>2</sub>(G|AA) P<sub>2</sub>(T|AA) P<sub>2</sub>(A|AC) P<sub>2</sub>(C|AC) P<sub>2</sub>(G|AC) ... P<sub>2</sub>(T|TT)<br>
+...
 
-    P<sub>2</sub>(A) P<sub>2</sub>(C) P<sub>2</sub>(G) P<sub>2</sub>(T)
-    P<sub>2</sub>(A|A) P<sub>2</sub>(C|A) P<sub>2</sub>(G|A) P<sub>2</sub>(T|A) P<sub>2</sub>(A|C) P<sub>2</sub>(C|C) P<sub>2</sub>(G|C) ... P<sub>2</sub>(T|T)
-    P<sub>2</sub>(A|AA) P<sub>2</sub>(C|AA) P<sub>2</sub>(G|AA) P<sub>2</sub>(T|AA) P<sub>2</sub>(A|AC) P<sub>2</sub>(C|AC) P<sub>2</sub>(G|AC) ... P<sub>2</sub>(T|TT)
+P<sub>W</sub>(A) P<sub>W</sub>(C) P<sub>W</sub>(G) P<sub>W</sub>(T)<br>
+P<sub>W</sub>(A|A) P<sub>W</sub>(C|A) P<sub>W</sub>(G|A) P<sub>W</sub>(T|A) P<sub>W</sub>(A|C) P<sub>W</sub>(C|C) P<sub>W</sub>(G|C) ... P<sub>W</sub>(T|T)<br>
+P<sub>W</sub>(A|AA) P<sub>W</sub>(C|AA) P<sub>W</sub>(G|AA) P<sub>W</sub>(T|AA) P<sub>W</sub>(A|AC) P<sub>W</sub>(C|AC) P<sub>W</sub>(G|AC) ... P<sub>W</sub>(T|TT)<br>
 
-    .
-    .
-    .
+Filename extension: freqs
 
-    P<sub>W</sub>(A) P<sub>W</sub>(C) P<sub>W</sub>(G) P<sub>W</sub>(T)
-    P<sub>W</sub>(A|A) P<sub>W</sub>(C|A) P<sub>W</sub>(G|A) P<sub>W</sub>(T|A) P<sub>W</sub>(A|C) P<sub>W</sub>(C|C) P<sub>W</sub>(G|C) ... P<sub>W</sub>(T|T)
-    P<sub>W</sub>(A|AA) P<sub>W</sub>(C|AA) P<sub>W</sub>(G|AA) P<sub>W</sub>(T|AA) P<sub>W</sub>(A|AC) P<sub>W</sub>(C|AC) P<sub>W</sub>(G|AC) ... P<sub>W</sub>(T|TT)
+P(A) P(C) P(G) P(T)<br>
 
 Note that contexts are restricted to the binding site. For instance, P<sub>1</sub>(G|AC) and P<sub>2</sub>(G|AC) are defined as P<sub>1</sub>(G) and P<sub>2</sub>(G|C), respectively.
+
+In addition, BaMM!motif generates three files for the (homogeneous) background BaMM &ndash; one containing the probabilities (filename extension: probsBg), one containing the conditional probabilities (filename extension: condsBg), and one containing the background frequencies of mononucleotides (file extension: freqs). For instance, the format for a background BaMM of order 2 is as follows:
+
+Filename extension: probsBg
+
+P(A) P(C) P(G) P(T)<br>
+P(AA) P(AC) P(AG) P(AT) P(CA) P(CC) P(CG) ... P(TT)<br>
+P(AAA) P(AAC) P(AAG) P(AAT) P(ACA) P(ACC) P(ACG) ... P(TTT)<br>
+
+Filename extension: condsBg
+
+P(A) P(C) P(G) P(T)<br>
+P(A|A) P(C|A) P(G|A) P(T|A) P(A|C) P(C|C) P(G|C) ... P(T|T)<br>
+P(A|AA) P(C|AA) P(G|AA) P(T|AA) P(A|AC) P(C|AC) P(G|AC) ... P(T|TT)<br>
+
+Filename extension: freqsBg
+
+P(A) P(C) P(G) P(T)<br>
+
+Note that the background frequencies of mononucleotides are identical to the probabilities of mononucleotides in the other two files.
 
 ## License
 BaMM!motif is released under the GNU General Public License v3 or later. See LICENSE for more details.
