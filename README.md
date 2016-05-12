@@ -34,24 +34,24 @@ Sequence options
 
       --negSequenceSet <FILEPATH>
           FASTA file with negative/background sequences used to learn the
-          (homogeneous) background BMM. If not specified, the background BMM is
-          learned from the positive sequences.
+          (homogeneous) background BaMM. If not specified, the background BaMM
+          is learned from the positive sequences.
 
       --reverseComp
           Search motifs on both strands (positive sequences and reverse
           complements). This option is e.g. recommended when using sequences
           derived from ChIP-seq experiments.
 
-  Options to initialize a single BMM from file
+  Options to initialize a single BaMM from file
 
       --bindingSiteFile <FILEPATH>
           File with binding sites of equal length (one per line).
 
       --markovModelFile <FILEPATH>
-          File with BMM probabilities as obtained from BaMM!motif (omit
+          File with BaMM probabilities as obtained from BaMM!motif (omit
           filename extension).
 
-  Options to initialize one or more BMMs from XXmotif PWMs
+  Options to initialize one or more BaMMs from XXmotif PWMs
 
       --minPWMs <INTEGER>
           Minimum number of PWMs. The options --maxPValue and --minOccurrence
@@ -70,10 +70,10 @@ Sequence options
           default is 0.05.
 
       --rankPWMs <INTEGER> [<INTEGER>...]
-          PWM ranks in XXmotif results. The former options to initialize BMMs
+          PWM ranks in XXmotif results. The former options to initialize BaMMs
           from PWMs are ignored.
 
-  Options for (inhomogeneous) motif BMMs
+  Options for (inhomogeneous) motif BaMMs
 
       -k <INTEGER>
           Order. The default is 2.
@@ -91,13 +91,13 @@ Sequence options
           k > 0). The default is 3.0.
 
       --extend <INTEGER>{1,2}
-          Extend BMMs by adding uniformly initialized positions to the left
-          and/or right of initial BMMs. Invoking e.g. with --extend 0 2 adds
-          two positions to the right of initial BMMs. Invoking with --extend 2
-          adds two positions to both sides of initial BMMs. By default, BMMs
+          Extend BaMMs by adding uniformly initialized positions to the left
+          and/or right of initial BaMMs. Invoking e.g. with --extend 0 2 adds
+          two positions to the right of initial BaMMs. Invoking with --extend 2
+          adds two positions to both sides of initial BaMMs. By default, BaMMs
           are not being extended.
 
-  Options for the (homogeneous) background BMM
+  Options for the (homogeneous) background BaMM
 
       -K <INTEGER>
           Order. The default is 2.
@@ -113,7 +113,7 @@ Sequence options
 
       -e|--epsilon <FLOAT>
           The EM algorithm is deemed to be converged when the sum over the
-          absolute differences in BMM probabilities from successive EM rounds
+          absolute differences in BaMM probabilities from successive EM rounds
           is smaller than epsilon. The default is 0.001.
 
   XXmotif options
@@ -149,12 +149,12 @@ Sequence options
           Omit the length optimization of PWMs.
 
       --XX-K <INTEGER>
-          Order of the (homogeneous) background BMM. The default is either 2
+          Order of the (homogeneous) background BaMM. The default is either 2
           (when learned on positive sequences) or 8 (when learned on background
           sequences).
 
       --XX-A <FLOAT>
-          Prior strength of the (homogeneous) background BMM. The default is
+          Prior strength of the (homogeneous) background BaMM. The default is
           10.0.
 
       --XX-jumpStartPatternStage <STRING>
@@ -182,28 +182,70 @@ Sequence options
   Options to score sequences
 
       --scorePosSequenceSet
-          Score positive (training) sequences with optimized BMMs.
+          Score positive (training) sequences with optimized BaMMs.
 
       --scoreNegSequenceSet
-          Score background (training) sequences with optimized BMMs.
+          Score background (training) sequences with optimized BaMMs.
 
       --scoreTestSequenceSet <FILEPATH> [<FILEPATH>...]
-          Score test sequences with optimized BMMs. Test sequences can be
+          Score test sequences with optimized BaMMs. Test sequences can be
           provided in a single or multiple FASTA files.
 
   Output options
 
-      --saveInitBMMs
-          Write initialized BMM(s) to disk.
+      --saveInitBaMMs
+          Write initialized BaMM(s) to disk.
 
-      --saveBMMs
-          Write optimized BMM(s) to disk.
+      --saveBaMMs
+          Write optimized BaMM(s) to disk.
 
       --verbose
           Verbose terminal printouts.
 
       -h, --help
           Printout this help.
+
+## BaMM flat file format
+
+BaMMs are written to flat file when invoking BaMM!motif with the output option --saveInitBaMMs and/or --saveBaMMs. In this case, BaMM!motif generates two files for each BaMM, one containing probabilities (filename extension *probs*), the other containing conditional probabilities (filename extension *conds*). The format is the same for both. While blank lines separate BaMM positions, lines *1* to *k+1* of each BaMM position contain the probabilities for order *0* to order *k*. For instance, the format for a BaMM of order *2* and length *W* is as follows:
+
+Filename extension *probs*
+
+    P<sub>1</sub>(A) P<sub>1</sub>(C) P<sub>1</sub>(G) P<sub>1</sub>(T)
+    P<sub>1</sub>(AA) P<sub>1</sub>(AC) P<sub>1</sub>(AG) P<sub>1</sub>(AT) P<sub>1</sub>(CA) P<sub>1</sub>(CC) P<sub>1</sub>(CG) ... P<sub>1</sub>(TT)
+    P<sub>1</sub>(AAA) P<sub>1</sub>(AAC) P<sub>1</sub>(AAG) P<sub>1</sub>(AAT) P<sub>1</sub>(ACA) P<sub>1</sub>(ACC) P<sub>1</sub>(ACG) ... P<sub>1</sub>(TTT)
+
+    P<sub>2</sub>(A) P<sub>2</sub>(C) P<sub>2</sub>(G) P<sub>2</sub>(T)
+    P<sub>2</sub>(AA) P<sub>2</sub>(AC) P<sub>2</sub>(AG) P<sub>2</sub>(AT) P<sub>2</sub>(CA) P<sub>2</sub>(CC) P<sub>2</sub>CG) ... P<sub>2</sub>(TT)
+    P<sub>2</sub>(AAA) P<sub>2</sub>(AAC) P<sub>2</sub>(AAG) P<sub>2</sub>(AAT) P<sub>2</sub>(ACA) P<sub>2</sub>(ACC) P<sub>2</sub>(ACG) ... P<sub>2</sub>(TTT)
+
+    .
+    .
+    .
+
+    P<sub>W</sub>(A) P<sub>W</sub>(C) P<sub>W</sub>(G) P<sub>W</sub>(T)
+    P<sub>W</sub>(AA) P<sub>W</sub>(AC) P<sub>W</sub>(AG) P<sub>W</sub>(AT) P<sub>W</sub>(CA) P<sub>W</sub>(CC) P<sub>W</sub>CG) ... P<sub>W</sub>(TT)
+    P<sub>W</sub>(AAA) P<sub>W</sub>(AAC) P<sub>W</sub>(AAG) P<sub>W</sub>(AAT) P<sub>W</sub>(ACA) P<sub>W</sub>(ACC) P<sub>W</sub>(ACG) ... P<sub>W</sub>(TTT)
+
+Filename extension *conds*
+
+    P<sub>1</sub>(A) P<sub>1</sub>(C) P<sub>1</sub>(G) P<sub>1</sub>(T)
+    P<sub>1</sub>(A|A) P<sub>1</sub>(C|A) P<sub>1</sub>(G|A) P<sub>1</sub>(T|A) P<sub>1</sub>(A|C) P<sub>1</sub>(C|C) P<sub>1</sub>(G|C) ... P<sub>1</sub>(T|T)
+    P<sub>1</sub>(A|AA) P<sub>1</sub>(C|AA) P<sub>1</sub>(G|AA) P<sub>1</sub>(T|AA) P<sub>1</sub>(A|AC) P<sub>1</sub>(C|AC) P<sub>1</sub>(G|AC) ... P<sub>1</sub>(T|TT)
+
+    P<sub>2</sub>(A) P<sub>2</sub>(C) P<sub>2</sub>(G) P<sub>2</sub>(T)
+    P<sub>2</sub>(A|A) P<sub>2</sub>(C|A) P<sub>2</sub>(G|A) P<sub>2</sub>(T|A) P<sub>2</sub>(A|C) P<sub>2</sub>(C|C) P<sub>2</sub>(G|C) ... P<sub>2</sub>(T|T)
+    P<sub>2</sub>(A|AA) P<sub>2</sub>(C|AA) P<sub>2</sub>(G|AA) P<sub>2</sub>(T|AA) P<sub>2</sub>(A|AC) P<sub>2</sub>(C|AC) P<sub>2</sub>(G|AC) ... P<sub>2</sub>(T|TT)
+
+    .
+    .
+    .
+
+    P<sub>W</sub>(A) P<sub>W</sub>(C) P<sub>W</sub>(G) P<sub>W</sub>(T)
+    P<sub>W</sub>(A|A) P<sub>W</sub>(C|A) P<sub>W</sub>(G|A) P<sub>W</sub>(T|A) P<sub>W</sub>(A|C) P<sub>W</sub>(C|C) P<sub>W</sub>(G|C) ... P<sub>W</sub>(T|T)
+    P<sub>W</sub>(A|AA) P<sub>W</sub>(C|AA) P<sub>W</sub>(G|AA) P<sub>W</sub>(T|AA) P<sub>W</sub>(A|AC) P<sub>W</sub>(C|AC) P<sub>W</sub>(G|AC) ... P<sub>W</sub>(T|TT)
+
+Note that contexts are restricted to the binding site. For instance, P<sub>1</sub>(G|AC) and P<sub>2</sub>(G|AC) are defined as P<sub>1</sub>(G) and P<sub>2</sub>(G|C), respectively.
 
 ## License
 BaMM!motif is released under the GNU General Public License v3 or later. See LICENSE for more details.
