@@ -269,7 +269,7 @@ P(A) P(C) P(G) P(T)<br>
 
 Note that the background frequencies of mononucleotides are identical to the probabilities of mononucleotides in the other two files.
 
-## Plot BaMM logo
+## How to plot BaMM logos?
 
 R scripts are provided in directory R to plot the BaMM logo from a BaMM flat file. To create a BaMM logo, edit the parameter setting in `plotBaMM.wrapper.R` and source the code in the R session using
 
