@@ -8,6 +8,9 @@ To compile from source you need
   * a recent C compiler (we suggest GCC 4.4 or later)
   * [CMake](http://cmake.org/) 2.8 or later
 
+To plot BaMM logos you need
+  * [R](https://cran.r-project.org/) 2.14.1 or later
+
 ## How to compile BaMM!motif?
 
       cmake .
@@ -264,6 +267,12 @@ Filename extension: freqsBg
 P(A) P(C) P(G) P(T)<br>
 
 Note that the background frequencies of mononucleotides are identical to the probabilities of mononucleotides in the other two files.
+
+## Plot BaMM logo
+
+R scripts are provided in directory R to plot the BaMM logo from a BaMM flat file. To create a BaMM logo, edit the parameter setting in `plotBaMM.wrapper.R` and source the code in the R session using
+    source( "plotBaMM.wrapper.R" )
+Please find comments on available plotting options in the wrapper.
 
 ## License
 BaMM!motif is released under the GNU General Public License v3 or later. See LICENSE for more details.
