@@ -25,8 +25,7 @@ library( grid )
 ################################################################################
 
 # main directory
-# mainDir <- file.path( "", "home", "matthias", "Postdoc", "R" )
-mainDir <- file.path( "", "media", "4BB0-2F42", "Postdoc", "R" )
+mainDir <- file.path( "", "home", "user", "workspace", "BaMMmotif", "R" )
 
 # function(s) to plot BaMM logo
 source( file.path( mainDir, "plotBaMM.R" ) )
@@ -53,7 +52,7 @@ filename <- "wgEncodeSydhTfbsHepg2Mafkab50322IggrabAlnRep0_summits102_restr5000_
 order <- 0
 
 # use RNA alphabet (ACGU) instead of DNA (ACGT) alphabet
-RNASeqLogo <- TRUE
+RNASeqLogo <- FALSE
 
 # use nucleotide frequencies from <filename>.freqs file to calculate 0'th-order
 # background frequencies (default: uniformly distributed nucleotide frequencies)
