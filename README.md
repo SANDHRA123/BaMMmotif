@@ -5,7 +5,7 @@
 ## Requirements
 To compile from source you need
 
-  * a recent C compiler (we suggest GCC 4.4 or later)
+  * [GCC](https://gcc.gnu.org/) compiler version 5.x or lower (we suggest GCC-5.x)
   * [CMake](http://cmake.org/) 2.8 or later
 
 To plot BaMM logos you need
@@ -14,8 +14,32 @@ To plot BaMM logos you need
 
 ## How to compile BaMM!motif?
 
-      cmake .
+### Linux
+      mkdir build
+      cd build
+      cmake ..
       make
+
+### OS X
+OS X ships clang instead of gcc. We recommend using [Homebrew](http://brew.sh/) to install gcc.
+
+Having installed Homebrew, all required dependencies can be installed using the `brew` command
+
+      brew tap homebrew/versions
+      brew tap homebrew/science
+      brew install gcc5 cmake R
+
+Finally this will compile BaMM!motif
+
+      export CXX=g++-5
+      export CC=gcc-5
+      export LDFLAGS="-static-libgcc -static-libstdc++"
+
+      mkdir build
+      cd build
+      cmake ..
+      make
+
 
 ## How to use BaMM!motif from the command line?
 SYNOPSIS
