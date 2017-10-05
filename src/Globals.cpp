@@ -307,7 +307,7 @@ bool Global::logProbs = false;
 // write initialized BaMM(s) to disk
 bool Global::saveInitModels = false;
 // write optimized BaMM(s) to disk
-bool Global::saveModels = false;
+bool Global::saveModels = true;
 // write sequence likelihoods and positional odds scores to disk after each EM
 //   iteration
 bool Global::saveExpectationMaximizationLikelihoods = false;
